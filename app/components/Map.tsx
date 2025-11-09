@@ -39,7 +39,7 @@ export default function Map({ profiles, onCellClick }: MapProps) {
         data,
         pickable: true,
         opacity: 0.9,
-        cellSizePixels: 80,
+        cellSizePixels: 40,
         colorRange: [
           [0, 255, 0, 255],       // Green
           [255, 255, 0, 255],     // Yellow
@@ -48,14 +48,26 @@ export default function Map({ profiles, onCellClick }: MapProps) {
           [255, 0, 0, 255],       // Red
         ],
         getPosition: (d: any) => d.position,
-        getWeight: (d: any) => 5,
+        getWeight: (d: any) => 3,
         gpuAggregation: true,
-        onClick: (info: any) => {
+        onClick: (info: any, event: any) => {
           console.log('Clicked cell:', info);
-          if (info.object) {
-            const cellProfiles = info.object.points?.map((p: any) => p.source.profile) || [];
-            onCellClick(cellProfiles);
+          console.log('Event:', event);
+
+          // ScreenGridLayer doesn't provide individual points in the aggregated cell
+          // We need to get the sourceLayer which has the actual data
+          if (info.index >= 0 && info.layer) {
+            // Get the bin information
+            const { col, row } = info.object || {};
+            console.log('Cell position:', { col, row });
+
+            // For now, pass all profiles - we'll need to filter by cell later
+            // This is a limitation of ScreenGridLayer
+            console.log('Opening panel with all profiles');
+            onCellClick(profiles);
+            return true;
           }
+          return false;
         },
       }),
     ];

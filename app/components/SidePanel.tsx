@@ -8,7 +8,12 @@ interface SidePanelProps {
 }
 
 export default function SidePanel({ profiles, onClose }: SidePanelProps) {
-  if (profiles.length === 0) return null;
+  console.log('SidePanel rendering with profiles:', profiles, 'length:', profiles.length);
+
+  if (profiles.length === 0) {
+    console.log('SidePanel returning null - no profiles');
+    return null;
+  }
 
   return (
     <>

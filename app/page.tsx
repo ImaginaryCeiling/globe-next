@@ -24,12 +24,15 @@ export default function Home() {
   }, []);
 
   const handleCellClick = (cellProfiles: Profile[]) => {
+    console.log('handleCellClick called with:', cellProfiles);
     setSelectedProfiles(cellProfiles);
   };
 
   const handleClosePanel = () => {
     setSelectedProfiles([]);
   };
+
+  console.log('Rendering Home - selectedProfiles:', selectedProfiles);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
