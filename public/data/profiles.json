@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sample-1",
+    "name": "Sample Person 1",
+    "location": [37.779259, -122.419329],
+    "met_at": "Downtown SF",
+    "met_on": "2025-01-15",
+    "notes": "This is a sample profile to test the map visualization.",
+    "tags": ["test", "sample"]
+  },
+  {
+    "id": "sample-2",
+    "name": "Sample Person 2",
+    "location": [37.780259, -122.420329],
+    "met_at": "Financial District",
+    "met_on": "2025-01-16",
+    "notes": "Another sample person nearby.",
+    "tags": ["test", "work"]
+  },
+  {
+    "id": "sample-3",
+    "name": "Sample Person 3",
+    "location": [37.781259, -122.418329],
+    "met_at": "Chinatown",
+    "met_on": "2025-01-17",
+    "notes": "Met at a coffee shop.",
+    "tags": ["coffee", "friend"]
+  },
+  {
+    "id": "sample-4",
+    "name": "Sample Person 4",
+    "location": [37.775259, -122.421329],
+    "met_at": "SoMa",
+    "met_on": "2025-01-18",
+    "notes": "Tech meetup connection.",
+    "tags": ["tech", "startup"]
+  }
+]
