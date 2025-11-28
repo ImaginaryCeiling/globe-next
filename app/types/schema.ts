@@ -29,14 +29,14 @@ export interface Person {
     twitter?: string;
     [key: string]: any;
   };
-  organization_id?: UUID;
+  // Removed single organization_id
   current_location_lat: number;
   current_location_lng: number;
   notes?: string;
   created_at?: string;
   
-  // Joined fields (optional, for UI convenience)
-  organization?: Organization;
+  // Joined fields
+  organizations?: Organization[]; // Array now
 }
 
 export interface Interaction {
@@ -55,4 +55,3 @@ export interface Interaction {
   person?: Person;
   event?: Event;
 }
-
