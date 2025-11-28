@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import type { Profile } from './types/profile';
+import type { Person, Event, Organization } from './types/schema';
 import SidePanel from './components/SidePanel';
 import Navigation from './components/Navigation';
 import AddPersonModal from './components/AddPersonModal';
@@ -11,30 +11,41 @@ import AddPersonModal from './components/AddPersonModal';
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
 export default function Home() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load profiles from API
+  // Load initial data
   useEffect(() => {
-    fetch('/api/profiles')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          console.log('Loaded profiles:', data);
-          setProfiles(data);
-        } else {
-          console.error('Invalid profiles data:', data);
-        }
-      })
-      .catch((err) => console.error('Error loading profiles:', err));
+    const fetchData = async () => {
+      try {
+        const [peopleRes, eventsRes, orgsRes] = await Promise.all([
+          fetch('/api/people'),
+          fetch('/api/events'),
+          fetch('/api/organizations')
+        ]);
+
+        if (peopleRes.ok) setPeople(await peopleRes.json());
+        if (eventsRes.ok) setEvents(await eventsRes.json());
+        if (orgsRes.ok) setOrganizations(await orgsRes.json());
+
+      } catch (err) {
+        console.error('Error loading data:', err);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const handleCellClick = (cellProfiles: Profile[]) => {
-    console.log('handleCellClick called with:', cellProfiles);
+  const handlePersonClick = (person: Person) => {
+    console.log('Clicked person:', person);
+    // Could open side panel detail view or similar
   };
 
-  const handleAddSuccess = (newProfile: Profile) => {
-    setProfiles(prev => [...prev, newProfile]);
+  const handleAddSuccess = (newPerson: Person) => {
+    setPeople(prev => [newPerson, ...prev]);
   };
 
   return (
@@ -44,10 +55,12 @@ export default function Home() {
       
       {/* Main Content Area */}
       <div className="flex-1 relative h-full ml-64">
-        <Map profiles={profiles} onCellClick={handleCellClick} />
+        <Map people={people} onPersonClick={handlePersonClick} />
         
         <SidePanel 
-          profiles={profiles} 
+          people={people}
+          events={events}
+          organizations={organizations} 
           onAddClick={() => setIsModalOpen(true)}
         />
       </div>
