@@ -65,3 +65,9 @@ body {
     opacity: 0;
   }
 }
+
+/* Google Places Autocomplete Dropdown Fix */
+/* Ensure the dropdown appears above the modal (which is usually z-50 or z-100) */
+.pac-container {
+  z-index: 10000 !important;
+}

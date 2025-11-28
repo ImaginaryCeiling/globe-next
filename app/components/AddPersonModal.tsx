@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Organization, Person } from '../types/schema';
 
 interface AddPersonModalProps {
@@ -19,6 +19,10 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
   const [isNewOrg, setIsNewOrg] = useState(false);
   // Now supports multiple selected IDs
   const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>([]);
+  
+  const [locationQuery, setLocationQuery] = useState('');
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
   
   const [personData, setPersonData] = useState({
     name: '',
@@ -39,6 +43,55 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
         .catch(err => console.error('Failed to load orgs', err));
     }
   }, [isOpen]);
+
+  // Initialize Google Places Autocomplete
+  useEffect(() => {
+    let autocomplete: any = null;
+
+    if (step === 2 && locationInputRef.current && (window as any).google) {
+      // Load the places library if not already loaded
+      // We are using the main script loader, but we need to ensure 'places' lib is accessible
+      // The script tag includes libraries=places so google.maps.places should be available
+      
+      const initAutocomplete = async () => {
+        try {
+            const { Autocomplete } = await (window as any).google.maps.importLibrary("places");
+            
+            autocomplete = new Autocomplete(locationInputRef.current, {
+                fields: ["geometry", "formatted_address"],
+                types: ['geocode', 'establishment']
+            });
+
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                
+                if (!place.geometry || !place.geometry.location) {
+                    // User entered the name of a Place that was not suggested and
+                    // pressed the Enter key, or the Place Details request failed.
+                    return;
+                }
+
+                setPersonData(prev => ({
+                    ...prev,
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                }));
+                setLocationQuery(place.formatted_address || '');
+            });
+        } catch (e) {
+            console.error("Google Maps Places library load error", e);
+        }
+      };
+
+      initAutocomplete();
+    }
+
+    return () => {
+        if (autocomplete) {
+            (window as any).google.maps.event.clearInstanceListeners(autocomplete);
+        }
+    };
+  }, [step, isOpen]);
 
   if (!isOpen) return null;
 
@@ -86,6 +139,17 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Geocode if we have a query but no coords (or if query changed - though simplified logic here)
+    let lat = personData.lat;
+    let lng = personData.lng;
+
+    // Fallback manual validation if Google Autocomplete didn't catch it
+    if (locationQuery && (!lat || !lng)) {
+       alert('Please select a location from the dropdown suggestions.');
+       setIsSubmitting(false);
+       return;
+    }
+
     try {
       const payload = {
         name: personData.name,
@@ -96,8 +160,8 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
         },
         // Send array of org IDs
         organization_ids: selectedOrgIds,
-        current_location_lat: parseFloat(personData.lat),
-        current_location_lng: parseFloat(personData.lng),
+        current_location_lat: parseFloat(lat),
+        current_location_lng: parseFloat(lng),
         notes: personData.notes
       };
 
@@ -129,6 +193,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
         lng: '',
         notes: ''
       });
+      setLocationQuery('');
       setOrgName('');
       setSelectedOrgIds([]);
       setIsNewOrg(false);
@@ -245,29 +310,21 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-zinc-400 text-sm mb-1">Latitude (Current)</label>
-                <input
-                  type="number"
-                  step="any"
-                  required
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none"
-                  value={personData.lat}
-                  onChange={e => setPersonData({...personData, lat: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-zinc-400 text-sm mb-1">Longitude (Current)</label>
-                <input
-                  type="number"
-                  step="any"
-                  required
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none"
-                  value={personData.lng}
-                  onChange={e => setPersonData({...personData, lng: e.target.value})}
-                />
-              </div>
+            <div>
+              <label className="block text-zinc-400 text-sm mb-1">Location</label>
+              <input
+                ref={locationInputRef}
+                type="text"
+                required
+                placeholder="Search for a place..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none"
+                value={locationQuery}
+                onChange={e => {
+                    setLocationQuery(e.target.value);
+                    // Clear lat/lng when user types new location to force re-geocode
+                    setPersonData(prev => ({ ...prev, lat: '', lng: '' }));
+                }}
+              />
             </div>
 
             <div>
