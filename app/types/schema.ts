@@ -32,6 +32,7 @@ export interface Person {
   // Removed single organization_id
   current_location_lat: number;
   current_location_lng: number;
+  location_name?: string;
   notes?: string;
   created_at?: string;
   

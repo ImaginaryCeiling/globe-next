@@ -77,7 +77,11 @@ export default function SidePanel({ people, events, organizations, onClose, onAd
                     <p className="text-zinc-400 text-sm">{person.notes}</p>
                   )}
                   <div className="text-zinc-600 text-xs">
-                    Location: {person.current_location_lat.toFixed(2)}, {person.current_location_lng.toFixed(2)}
+                    {person.location_name ? (
+                      person.location_name
+                    ) : (
+                      `${person.current_location_lat.toFixed(2)}, ${person.current_location_lng.toFixed(2)}`
+                    )}
                   </div>
                 </div>
               </div>

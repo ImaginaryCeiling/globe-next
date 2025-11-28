@@ -7,13 +7,18 @@ interface AddPersonModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (person: Person) => void;
+  existingOrgs: Organization[];
 }
 
-export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPersonModalProps) {
+export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrgs: initialOrgs }: AddPersonModalProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingOrgs, setExistingOrgs] = useState<Organization[]>([]);
   
+  useEffect(() => {
+    setExistingOrgs(initialOrgs);
+  }, [initialOrgs]);
+
   // Form State
   const [orgName, setOrgName] = useState('');
   const [isNewOrg, setIsNewOrg] = useState(false);
@@ -34,16 +39,9 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
     notes: ''
   });
 
-  // Load organizations on open
-  useEffect(() => {
-    if (isOpen) {
-      fetch('/api/organizations')
-        .then(res => res.json())
-        .then(data => setExistingOrgs(data))
-        .catch(err => console.error('Failed to load orgs', err));
-    }
-  }, [isOpen]);
-
+  // Load organizations on open -> Removed internal fetch
+  // We now receive orgs from props, but we keep local state to add new ones optimistically
+  
   // Initialize Google Places Autocomplete
   useEffect(() => {
     let autocomplete: any = null;
@@ -162,6 +160,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess }: AddPerson
         organization_ids: selectedOrgIds,
         current_location_lat: parseFloat(lat),
         current_location_lng: parseFloat(lng),
+        location_name: locationQuery,
         notes: personData.notes
       };
 
