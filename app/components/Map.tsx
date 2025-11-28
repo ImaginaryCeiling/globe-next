@@ -1,80 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import { Deck } from '@deck.gl/core';
-import { ScreenGridLayer } from '@deck.gl/aggregation-layers';
-import { MapboxOverlay } from '@deck.gl/mapbox';
-import type { Profile } from '../types/profile';
+import type { Person } from '../types/schema';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface MapProps {
-  profiles: Profile[];
-  onCellClick: (profiles: Profile[]) => void;
+  people: Person[];
+  onPersonClick: (person: Person) => void;
 }
 
-export default function Map({ profiles, onCellClick }: MapProps) {
+export default function Map({ people, onPersonClick }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const deckOverlay = useRef<MapboxOverlay | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-
-  // Function to update layers
-  const updateLayers = useCallback(() => {
-    if (!deckOverlay.current || !profiles.length) {
-      console.log('Cannot update layers - overlay:', !!deckOverlay.current, 'profiles:', profiles.length);
-      return;
-    }
-
-    const data = profiles.map((profile) => ({
-      position: [profile.location[1], profile.location[0]], // [lng, lat]
-      profile,
-    }));
-
-    console.log('Rendering ScreenGridLayer with data:', data);
-
-    const layers = [
-      new ScreenGridLayer({
-        id: 'screen-grid-layer',
-        data,
-        pickable: true,
-        opacity: 0.9,
-        cellSizePixels: 40,
-        colorRange: [
-          [0, 255, 0, 255],       // Green
-          [255, 255, 0, 255],     // Yellow
-          [255, 165, 0, 255],     // Orange
-          [255, 69, 0, 255],      // Red-Orange
-          [255, 0, 0, 255],       // Red
-        ],
-        getPosition: (d: any) => d.position,
-        getWeight: (d: any) => 3,
-        gpuAggregation: true,
-        onClick: (info: any, event: any) => {
-          console.log('Clicked cell:', info);
-          console.log('Event:', event);
-
-          // ScreenGridLayer doesn't provide individual points in the aggregated cell
-          // We need to get the sourceLayer which has the actual data
-          if (info.index >= 0 && info.layer) {
-            // Get the bin information
-            const { col, row } = info.object || {};
-            console.log('Cell position:', { col, row });
-
-            // For now, pass all profiles - we'll need to filter by cell later
-            // This is a limitation of ScreenGridLayer
-            console.log('Opening panel with all profiles');
-            onCellClick(profiles);
-            return true;
-          }
-          return false;
-        },
-      }),
-    ];
-
-    console.log('Setting layers on deck overlay');
-    deckOverlay.current.setProps({ layers });
-  }, [profiles, onCellClick]);
 
   // Request user location
   useEffect(() => {
@@ -90,7 +29,6 @@ export default function Map({ profiles, onCellClick }: MapProps) {
         }
       );
     } else {
-      // Fallback if geolocation not supported
       setUserLocation([-122.4194, 37.7749]);
     }
   }, []);
@@ -99,9 +37,6 @@ export default function Map({ profiles, onCellClick }: MapProps) {
   useEffect(() => {
     if (!mapContainer.current || !userLocation || map.current) return;
 
-    console.log('Initializing map at location:', userLocation);
-
-    // Initialize MapLibre with dark theme
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: {
@@ -133,26 +68,145 @@ export default function Map({ profiles, onCellClick }: MapProps) {
         ],
       },
       center: userLocation,
-      zoom: 13,
+      zoom: 11,
     });
 
-    // Wait for map to load before adding overlay
-    map.current.on('load', () => {
-      console.log('Map loaded, initializing deck.gl overlay');
+    // Add user location marker
+    const el = document.createElement('div');
+    el.className = 'user-location-marker';
 
-      // Initialize deck.gl overlay
-      deckOverlay.current = new MapboxOverlay({
-        interleaved: true,
-        layers: [],
+    const pulse = document.createElement('div');
+    pulse.className = 'user-location-pulse';
+
+    const dot = document.createElement('div');
+    dot.className = 'user-location-dot';
+
+    el.appendChild(pulse);
+    el.appendChild(dot);
+
+    new maplibregl.Marker({ element: el })
+      .setLngLat(userLocation)
+      .addTo(map.current);
+
+    map.current.on('load', () => {
+      // Add a new source from our GeoJSON data
+      map.current?.addSource('people', {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: []
+        },
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50
       });
 
-      map.current?.addControl(deckOverlay.current as any);
+      // Clusters: Color circles
+      map.current?.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'people',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#ef4444', // red-500
+            5,
+            '#f59e0b', // amber-500
+            20,
+            '#10b981'  // emerald-500
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,
+            5,
+            30,
+            20,
+            40
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
 
-      // If profiles are already loaded, render them now
-      if (profiles.length > 0) {
-        console.log('Profiles already loaded, rendering now');
-        updateLayers();
-      }
+      // Cluster Counts: Text
+      map.current?.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'people',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['Arial Unicode MS Bold', 'Arial Bold'],
+          'text-size': 14,
+          'text-allow-overlap': true
+        },
+        paint: {
+            'text-color': '#ffffff'
+        }
+      });
+
+      // Unclustered Points: Individual people
+      map.current?.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'people',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#ef4444', // red-500
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      // inspect a cluster on click
+      map.current?.on('click', 'clusters', async (e) => {
+        const features = map.current?.queryRenderedFeatures(e.point, {
+            layers: ['clusters']
+        });
+        const clusterId = features?.[0]?.properties?.cluster_id;
+        
+        const source = map.current?.getSource('people') as maplibregl.GeoJSONSource;
+        
+        source.getClusterExpansionZoom(clusterId).then((zoom) => {
+            map.current?.easeTo({
+                center: (features?.[0]?.geometry as any).coordinates,
+                zoom: zoom || 14
+            });
+        }).catch(err => console.error(err));
+      });
+
+      // Handle click on individual person
+      map.current?.on('click', 'unclustered-point', (e) => {
+          if (!e.features || !e.features[0]) return;
+          
+          const props = e.features[0].properties;
+          const personId = props?.id;
+          const clickedPerson = people.find(p => p.id === personId);
+
+          if (clickedPerson) {
+            onPersonClick(clickedPerson);
+          }
+      });
+
+      // Cursor pointer
+      map.current?.on('mouseenter', 'clusters', () => {
+          if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current?.on('mouseleave', 'clusters', () => {
+          if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+      map.current?.on('mouseenter', 'unclustered-point', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current?.on('mouseleave', 'unclustered-point', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+    });
+
+      updateSourceData();
     });
 
     return () => {
@@ -161,16 +215,38 @@ export default function Map({ profiles, onCellClick }: MapProps) {
     };
   }, [userLocation]);
 
-  // Update deck.gl layers when profiles change
+  // Helper to update GeoJSON data
+  const updateSourceData = () => {
+      if (!map.current || !map.current.getSource('people')) return;
+
+      const features = people.map(p => ({
+          type: 'Feature',
+          geometry: {
+              type: 'Point',
+              coordinates: [p.current_location_lng, p.current_location_lat]
+          },
+          properties: {
+              id: p.id,
+              name: p.name
+          }
+      }));
+
+      const source = map.current.getSource('people') as maplibregl.GeoJSONSource;
+      source.setData({
+          type: 'FeatureCollection',
+          features: features as any
+      });
+  };
+
+  // Watch for people changes
   useEffect(() => {
-    updateLayers();
-  }, [updateLayers]);
+      updateSourceData();
+  }, [people]);
 
   return (
     <div
       ref={mapContainer}
-      className="w-full h-screen"
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      className="w-full h-full relative" 
     />
   );
 }
