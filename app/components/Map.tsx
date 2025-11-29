@@ -243,10 +243,44 @@ export default function Map({ people, onPersonClick }: MapProps) {
       updateSourceData();
   }, [people]);
 
+  const recenterMap = () => {
+    if (map.current && userLocation) {
+      map.current.flyTo({
+        center: userLocation,
+        zoom: 10
+      });
+    }
+  };
+
   return (
-    <div
-      ref={mapContainer}
-      className="w-full h-full relative" 
-    />
+    <div className="relative w-full h-full">
+      <div
+        ref={mapContainer}
+        className="w-full h-full" 
+      />
+      <button
+        onClick={recenterMap}
+        className="absolute bottom-8 right-8 z-10 bg-zinc-900 text-white p-3 rounded-full shadow-lg hover:bg-zinc-800 transition-colors border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-white/20"
+        aria-label="Recenter map"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="20" 
+          height="20" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="22" y1="12" x2="18" y2="12"/>
+          <line x1="6" y1="12" x2="2" y2="12"/>
+          <line x1="12" y1="6" x2="12" y2="2"/>
+          <line x1="12" y1="22" x2="12" y2="18"/>
+        </svg>
+      </button>
+    </div>
   );
 }
