@@ -16,6 +16,7 @@ export default function Home() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(true);
 
   // Load initial data
   useEffect(() => {
@@ -51,10 +52,24 @@ export default function Home() {
   return (
     <div className="w-full h-screen bg-black overflow-hidden flex">
       {/* Left Navigation */}
-      <Navigation />
+      <Navigation isOpen={isNavOpen} onToggle={() => setIsNavOpen(!isNavOpen)} />
+
+      {/* Expand Nav Button */}
+      {!isNavOpen && (
+        <button 
+          onClick={() => setIsNavOpen(true)}
+          className="fixed left-4 top-4 z-50 bg-black/90 backdrop-blur-sm border border-zinc-800 text-white p-3 rounded-lg hover:bg-zinc-900 transition-all shadow-xl"
+          aria-label="Open navigation"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <line x1="9" y1="3" x2="9" y2="21" />
+          </svg>
+        </button>
+      )}
       
       {/* Main Content Area */}
-      <div className="flex-1 relative h-full ml-64">
+      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'ml-64' : 'ml-0'}`}>
         <Map people={people} onPersonClick={handlePersonClick} />
         
         <SidePanel 

@@ -15,6 +15,22 @@ type Tab = 'people' | 'events' | 'orgs';
 
 export default function SidePanel({ people, events, organizations, onClose, onAddClick }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('people');
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  if (!isExpanded) {
+    return (
+      <button 
+        onClick={() => setIsExpanded(true)}
+        className="fixed right-4 top-4 bg-black/90 backdrop-blur-sm border border-red-500/30 text-white p-3 rounded-lg shadow-2xl z-50 hover:bg-zinc-900 transition-all"
+        aria-label="Expand side panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <line x1="9" y1="3" x2="9" y2="21" />
+        </svg>
+      </button>
+    );
+  }
 
   return (
     <div className="fixed right-4 top-4 bottom-4 w-full sm:w-96 bg-black/90 backdrop-blur-sm border border-red-500/30 rounded-lg z-50 overflow-hidden flex flex-col shadow-2xl pointer-events-auto">
@@ -40,12 +56,23 @@ export default function SidePanel({ people, events, organizations, onClose, onAd
             Orgs
           </button>
         </div>
-        <button 
-          onClick={onAddClick}
-          className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded transition-colors"
-        >
-          + Add Person
-        </button>
+        <div className="flex gap-2 items-center">
+          <button 
+            onClick={onAddClick}
+            className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded transition-colors"
+          >
+            + Add
+          </button>
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="text-zinc-500 hover:text-white transition-colors"
+            aria-label="Collapse side panel"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Content List */}
