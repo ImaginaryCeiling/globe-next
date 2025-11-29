@@ -260,7 +260,7 @@ export default function Map({ people, onPersonClick }: MapProps) {
       />
       <button
         onClick={recenterMap}
-        className="absolute bottom-8 right-8 z-10 bg-zinc-900 text-white p-3 rounded-full shadow-lg hover:bg-zinc-800 transition-colors border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="absolute bottom-8 left-8 z-10 bg-zinc-900 text-white p-3 rounded-full shadow-lg hover:bg-zinc-800 transition-colors border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-white/20"
         aria-label="Recenter map"
       >
         <svg 
