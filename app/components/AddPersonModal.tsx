@@ -26,6 +26,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
   const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>([]);
   
   const [locationQuery, setLocationQuery] = useState('');
+  const [locationAddress, setLocationAddress] = useState('');
   const [isGeocoding, setIsGeocoding] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
   
@@ -56,7 +57,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
             const { Autocomplete } = await (window as any).google.maps.importLibrary("places");
             
             autocomplete = new Autocomplete(locationInputRef.current, {
-                fields: ["geometry", "formatted_address"],
+                fields: ["geometry", "formatted_address", "name"],
                 types: ['geocode', 'establishment']
             });
 
@@ -74,7 +75,13 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng()
                 }));
-                setLocationQuery(place.formatted_address || '');
+                
+                // Prefer name for the display/query, save address separately
+                const name = place.name || place.formatted_address || '';
+                const address = place.formatted_address || '';
+                
+                setLocationQuery(name);
+                setLocationAddress(address);
             });
         } catch (e) {
             console.error("Google Maps Places library load error", e);
@@ -161,6 +168,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
         current_location_lat: parseFloat(lat),
         current_location_lng: parseFloat(lng),
         location_name: locationQuery,
+        location_address: locationAddress,
         notes: personData.notes
       };
 
@@ -193,6 +201,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
         notes: ''
       });
       setLocationQuery('');
+      setLocationAddress('');
       setOrgName('');
       setSelectedOrgIds([]);
       setIsNewOrg(false);
@@ -322,6 +331,10 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
                     setLocationQuery(e.target.value);
                     // Clear lat/lng when user types new location to force re-geocode
                     setPersonData(prev => ({ ...prev, lat: '', lng: '' }));
+                    // We don't clear address immediately so we can keep the old one if they just edit the name, 
+                    // but strictly speaking if they change the name, the address might be invalid. 
+                    // For now, let's reset address if they type manually to ensure consistency.
+                    setLocationAddress(''); 
                 }}
               />
             </div>

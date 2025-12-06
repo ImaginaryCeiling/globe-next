@@ -33,6 +33,7 @@ export interface Person {
   current_location_lat: number;
   current_location_lng: number;
   location_name?: string;
+  location_address?: string;
   notes?: string;
   created_at?: string;
   
