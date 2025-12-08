@@ -9,13 +9,16 @@ interface SidePanelProps {
   organizations: Organization[];
   onClose?: () => void;
   onAddClick: () => void;
+  onEditPerson?: (person: Person) => void;
+  onDeletePerson?: (id: string) => void;
 }
 
 type Tab = 'people' | 'events' | 'orgs';
 
-export default function SidePanel({ people, events, organizations, onClose, onAddClick }: SidePanelProps) {
+export default function SidePanel({ people, events, organizations, onClose, onAddClick, onEditPerson, onDeletePerson }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (!isExpanded) {
     return (
@@ -86,9 +89,56 @@ export default function SidePanel({ people, events, organizations, onClose, onAd
             people.map((person) => (
               <div
                 key={person.id}
-                className="bg-zinc-900 border border-zinc-800 hover:border-red-500/50 transition-colors p-4 rounded-lg"
+                className="bg-zinc-900 border border-zinc-800 hover:border-red-500/50 transition-colors p-4 rounded-lg relative group"
               >
-                <h3 className="text-white text-lg font-semibold mb-1">{person.name}</h3>
+                {/* Actions (Top Right) */}
+                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => onEditPerson && onEditPerson(person)}
+                    className="text-zinc-500 hover:text-white p-1"
+                    title="Edit"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
+                  
+                  {confirmDeleteId === person.id ? (
+                    <div className="flex items-center gap-1 bg-zinc-800 rounded px-1">
+                      <button
+                        onClick={() => {
+                          onDeletePerson && onDeletePerson(person.id);
+                          setConfirmDeleteId(null);
+                        }}
+                        className="text-red-500 hover:text-red-400 text-xs font-bold px-1"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-zinc-500 hover:text-zinc-300 text-xs px-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setConfirmDeleteId(person.id)}
+                      className="text-zinc-500 hover:text-red-500 p-1"
+                      title="Delete"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                <h3 className="text-white text-lg font-semibold mb-1 pr-16">{person.name}</h3>
                 {person.organizations && person.organizations.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {person.organizations.map((org, idx) => (

@@ -6,6 +6,7 @@ import type { Person, Event, Organization } from './types/schema';
 import SidePanel from './components/SidePanel';
 import Navigation from './components/Navigation';
 import AddPersonModal from './components/AddPersonModal';
+import EditPersonModal from './components/EditPersonModal';
 
 // Dynamically import Map component (client-side only)
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
@@ -16,6 +17,7 @@ export default function Home() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   const [isNavOpen, setIsNavOpen] = useState(true);
 
   // Load initial data
@@ -49,6 +51,22 @@ export default function Home() {
     setPeople(prev => [newPerson, ...prev]);
   };
 
+  const handleEditSuccess = (updatedPerson: Person) => {
+    setPeople(prev => prev.map(p => p.id === updatedPerson.id ? updatedPerson : p));
+  };
+
+  const handleDeletePerson = async (id: string) => {
+    try {
+       const res = await fetch(`/api/people/${id}`, { method: 'DELETE' });
+       if (!res.ok) throw new Error('Failed to delete');
+       
+       setPeople(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete person');
+    }
+  };
+
   return (
     <div className="w-full h-screen bg-black overflow-hidden flex">
       {/* Left Navigation */}
@@ -77,6 +95,8 @@ export default function Home() {
           events={events}
           organizations={organizations} 
           onAddClick={() => setIsModalOpen(true)}
+          onEditPerson={(person) => setEditingPerson(person)}
+          onDeletePerson={handleDeletePerson}
         />
       </div>
 
@@ -86,6 +106,16 @@ export default function Home() {
         onSuccess={handleAddSuccess}
         existingOrgs={organizations}
       />
+      
+      {editingPerson && (
+        <EditPersonModal
+          isOpen={!!editingPerson}
+          onClose={() => setEditingPerson(null)}
+          onSuccess={handleEditSuccess}
+          person={editingPerson}
+          existingOrgs={organizations}
+        />
+      )}
     </div>
   );
 }
