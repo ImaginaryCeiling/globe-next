@@ -211,7 +211,7 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
             <input
               type="text"
               required
-              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-blue-500 outline-none"
               value={personData.name}
               onChange={e => setPersonData({...personData, name: e.target.value})}
             />
@@ -224,7 +224,7 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
               type="text"
               required
               placeholder="Search for a place..."
-              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-blue-500 outline-none"
               value={locationQuery}
               onChange={e => {
                   setLocationQuery(e.target.value);
@@ -245,7 +245,7 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
                      id={`edit-org-${org.id}`}
                      checked={selectedOrgIds.includes(org.id)}
                      onChange={() => toggleOrgSelection(org.id)}
-                     className="accent-red-600"
+                     className="accent-blue-600"
                    />
                    <label htmlFor={`edit-org-${org.id}`} className="text-zinc-300 text-sm flex-1 cursor-pointer select-none">
                      {org.name}
@@ -258,7 +258,7 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
           <div>
             <label className="block text-zinc-400 text-sm mb-1">Notes</label>
             <textarea
-              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-red-500 outline-none h-24"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-white focus:border-blue-500 outline-none h-24"
               value={personData.notes}
               onChange={e => setPersonData({...personData, notes: e.target.value})}
             />
@@ -275,7 +275,7 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>

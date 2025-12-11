@@ -14,6 +14,14 @@ export default function Map({ people, onPersonClick }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const peopleRef = useRef(people);
+
+  useEffect(() => {
+    peopleRef.current = people;
+    if (map.current && map.current.getSource('people')) {
+        updateSourceData();
+    }
+  }, [people]);
 
   // Request user location
   useEffect(() => {
@@ -111,7 +119,7 @@ export default function Map({ people, onPersonClick }: MapProps) {
           'circle-color': [
             'step',
             ['get', 'point_count'],
-            '#ef4444', // red-500
+            '#3b82f6', // blue-500
             5,
             '#f59e0b', // amber-500
             20,
@@ -155,7 +163,7 @@ export default function Map({ people, onPersonClick }: MapProps) {
         source: 'people',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#ef4444', // red-500
+          'circle-color': '#3b82f6', // blue-500
           'circle-radius': 8,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff'
@@ -219,7 +227,7 @@ export default function Map({ people, onPersonClick }: MapProps) {
   const updateSourceData = () => {
       if (!map.current || !map.current.getSource('people')) return;
 
-      const features = people.map(p => ({
+      const features = peopleRef.current.map(p => ({
           type: 'Feature',
           geometry: {
               type: 'Point',
@@ -238,10 +246,9 @@ export default function Map({ people, onPersonClick }: MapProps) {
       });
   };
 
-  // Watch for people changes
-  useEffect(() => {
-      updateSourceData();
-  }, [people]);
+  // Watch for people changes -> handled by the ref updater above mostly, 
+  // but we keep the effect to trigger updates when people change AND map is ready.
+  // We merged the logic into the previous effect.
 
   const recenterMap = () => {
     if (map.current && userLocation) {

@@ -19,7 +19,7 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
       {/* Logo/Header */}
       <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
         <h1 className="text-white text-2xl font-bold flex items-center gap-2">
-          <span className="w-3 h-3 bg-red-500 rounded-full inline-block"></span>
+          <span className="w-3 h-3 bg-blue-500 rounded-full inline-block"></span>
           Globe
         </h1>
         <button 
