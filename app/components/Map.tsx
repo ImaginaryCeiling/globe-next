@@ -15,6 +15,8 @@ export default function Map({ people, onPersonClick }: MapProps) {
   const map = useRef<maplibregl.Map | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const peopleRef = useRef(people);
+  const [hoveredPerson, setHoveredPerson] = useState<Person | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     peopleRef.current = people;
@@ -207,12 +209,36 @@ export default function Map({ people, onPersonClick }: MapProps) {
       map.current?.on('mouseleave', 'clusters', () => {
           if (map.current) map.current.getCanvas().style.cursor = '';
       });
-      map.current?.on('mouseenter', 'unclustered-point', () => {
+      
+      // Handle hover on individual person markers
+      map.current?.on('mouseenter', 'unclustered-point', (e) => {
         if (map.current) map.current.getCanvas().style.cursor = 'pointer';
-    });
-    map.current?.on('mouseleave', 'unclustered-point', () => {
+        
+        if (!e.features || !e.features[0]) return;
+        
+        const props = e.features[0].properties;
+        const personId = props?.id;
+        const person = peopleRef.current.find(p => p.id === personId);
+        
+        if (person) {
+          setHoveredPerson(person);
+          // Position popup near the marker
+          const point = e.point;
+          setPopupPosition({ x: point.x, y: point.y });
+        }
+      });
+      
+      map.current?.on('mousemove', 'unclustered-point', (e) => {
+        // Update popup position as mouse moves
+        const point = e.point;
+        setPopupPosition({ x: point.x, y: point.y });
+      });
+      
+      map.current?.on('mouseleave', 'unclustered-point', () => {
         if (map.current) map.current.getCanvas().style.cursor = '';
-    });
+        setHoveredPerson(null);
+        setPopupPosition(null);
+      });
 
       updateSourceData();
     });
@@ -288,6 +314,46 @@ export default function Map({ people, onPersonClick }: MapProps) {
           <line x1="12" y1="22" x2="12" y2="18"/>
         </svg>
       </button>
+      
+      {/* Hover Tooltip */}
+      {hoveredPerson && popupPosition && (
+        <div
+          className="absolute z-20 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl p-3 max-w-xs pointer-events-none"
+          style={{
+            left: `${popupPosition.x + 15}px`,
+            top: `${popupPosition.y - 10}px`,
+            transform: 'translateY(-100%)'
+          }}
+        >
+          <h3 className="text-white font-semibold text-sm mb-1">{hoveredPerson.name}</h3>
+          
+          {hoveredPerson.organizations && hoveredPerson.organizations.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {hoveredPerson.organizations.map((org, idx) => (
+                <span key={idx} className="text-blue-400 text-xs uppercase tracking-wide bg-blue-900/20 px-1.5 py-0.5 rounded">
+                  {org.name}
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {hoveredPerson.location_name && (
+            <div className="text-zinc-400 text-xs mb-1">
+              {hoveredPerson.location_name}
+            </div>
+          )}
+          
+          {hoveredPerson.notes && (
+            <p className="text-zinc-400 text-xs line-clamp-2">{hoveredPerson.notes}</p>
+          )}
+          
+          {hoveredPerson.contact_info?.email && (
+            <div className="text-zinc-500 text-xs mt-1 truncate">
+              {hoveredPerson.contact_info.email}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
