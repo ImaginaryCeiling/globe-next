@@ -8,7 +8,7 @@ interface NavigationProps {
 export default function Navigation({ isOpen, onToggle }: NavigationProps) {
   const navItems = [
     { name: 'Map', active: true },
-    { name: 'CRM', active: false },
+    { name: 'CRM', active: true },
     { name: 'Companies', active: false },
   ];
 
@@ -36,14 +36,10 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
 
       {/* Nav Items */}
       <nav className="flex-1 p-4 space-y-2">
-        {navItems.map((item) => (
+        {navItems.filter(item => item.active).map((item) => (
           <button
             key={item.name}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-              item.active
-                ? 'bg-zinc-900 text-white border border-zinc-700'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className="w-full text-left px-4 py-3 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-900/50"
           >
             {item.name}
           </button>
