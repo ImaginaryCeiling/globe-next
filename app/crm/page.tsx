@@ -1,0 +1,269 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import type { Person, Event, Organization, Interaction } from '../types/schema';
+import Navigation from '../components/Navigation';
+import AddPersonModal from '../components/AddPersonModal';
+import EditPersonModal from '../components/EditPersonModal';
+import CRMPeopleTable from '../components/CRMPeopleTable';
+import SearchBar from '../components/SearchBar';
+import FilterPanel from '../components/FilterPanel';
+
+type SortField = 'name' | 'created_at' | 'last_interaction';
+type SortDirection = 'asc' | 'desc';
+
+export default function CRMPage() {
+  const [people, setPeople] = useState<Person[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [isNavOpen, setIsNavOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarOpen');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  // Persist sidebar state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarOpen', String(isNavOpen));
+    }
+  }, [isNavOpen]);
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>([]);
+  const [dateFilter, setDateFilter] = useState<{ start?: string; end?: string }>({});
+  
+  // Sort state
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  
+  // Expanded rows for interaction history
+  const [expandedPersonIds, setExpandedPersonIds] = useState<Set<string>>(new Set());
+
+  // Load initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [peopleRes, eventsRes, orgsRes, interactionsRes] = await Promise.all([
+          fetch('/api/people'),
+          fetch('/api/events'),
+          fetch('/api/organizations'),
+          fetch('/api/interactions')
+        ]);
+
+        if (peopleRes.ok) setPeople(await peopleRes.json());
+        if (eventsRes.ok) setEvents(await eventsRes.json());
+        if (orgsRes.ok) setOrganizations(await orgsRes.json());
+        if (interactionsRes.ok) setInteractions(await interactionsRes.json());
+
+      } catch (err) {
+        console.error('Error loading data:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Filter and sort people
+  const filteredAndSortedPeople = useMemo(() => {
+    let filtered = [...people];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(person => 
+        person.name.toLowerCase().includes(query) ||
+        person.notes?.toLowerCase().includes(query) ||
+        person.contact_info?.email?.toLowerCase().includes(query) ||
+        person.contact_info?.phone?.toLowerCase().includes(query) ||
+        person.contact_info?.linkedin?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply organization filter
+    if (selectedOrgIds.length > 0) {
+      filtered = filtered.filter(person =>
+        person.organizations?.some(org => selectedOrgIds.includes(org.id))
+      );
+    }
+
+    // Apply date filter (last interaction)
+    if (dateFilter.start || dateFilter.end) {
+      filtered = filtered.filter(person => {
+        const personInteractions = interactions.filter(i => i.person_id === person.id);
+        if (personInteractions.length === 0) return false;
+        
+        const lastInteraction = personInteractions.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        )[0];
+        
+        const interactionDate = new Date(lastInteraction.date);
+        if (dateFilter.start && interactionDate < new Date(dateFilter.start)) return false;
+        if (dateFilter.end && interactionDate > new Date(dateFilter.end)) return false;
+        return true;
+      });
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortField === 'name') {
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+      } else if (sortField === 'created_at') {
+        aValue = new Date(a.created_at || 0).getTime();
+        bValue = new Date(b.created_at || 0).getTime();
+      } else if (sortField === 'last_interaction') {
+        const aInteractions = interactions.filter(i => i.person_id === a.id);
+        const bInteractions = interactions.filter(i => i.person_id === b.id);
+        aValue = aInteractions.length > 0 
+          ? new Date(aInteractions.sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime())[0].date).getTime()
+          : 0;
+        bValue = bInteractions.length > 0
+          ? new Date(bInteractions.sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime())[0].date).getTime()
+          : 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [people, searchQuery, selectedOrgIds, dateFilter, sortField, sortDirection, interactions]);
+
+  const handleAddSuccess = (newPerson: Person) => {
+    setPeople(prev => [newPerson, ...prev]);
+  };
+
+  const handleEditSuccess = (updatedPerson: Person) => {
+    setPeople(prev => prev.map(p => p.id === updatedPerson.id ? updatedPerson : p));
+  };
+
+  const handleDeletePerson = async (id: string) => {
+    try {
+      const res = await fetch(`/api/people/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      
+      setPeople(prev => prev.filter(p => p.id !== id));
+      setInteractions(prev => prev.filter(i => i.person_id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete person');
+    }
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const toggleExpanded = (personId: string) => {
+    setExpandedPersonIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(personId)) {
+        newSet.delete(personId);
+      } else {
+        newSet.add(personId);
+      }
+      return newSet;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedOrgIds([]);
+    setDateFilter({});
+  };
+
+  return (
+    <div className="w-full h-screen bg-black overflow-hidden flex">
+      {/* Left Navigation */}
+      <Navigation isOpen={isNavOpen} onToggle={() => setIsNavOpen(!isNavOpen)} />
+
+      
+      {/* Main Content Area */}
+      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="h-full flex flex-col bg-black">
+          {/* Header */}
+          <div className="border-b border-zinc-800 p-4 sm:p-6 shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <h1 className="text-white text-2xl sm:text-3xl font-bold">CRM</h1>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full sm:w-auto"
+              >
+                + Add Person
+              </button>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex flex-col gap-4">
+              <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+              />
+              <FilterPanel
+                organizations={organizations}
+                selectedOrgIds={selectedOrgIds}
+                onOrgFilterChange={setSelectedOrgIds}
+                dateFilter={dateFilter}
+                onDateFilterChange={setDateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={!!(searchQuery || selectedOrgIds.length > 0 || dateFilter.start || dateFilter.end)}
+              />
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="flex-1 overflow-auto">
+            <CRMPeopleTable
+              people={filteredAndSortedPeople}
+              interactions={interactions}
+              events={events}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              expandedPersonIds={expandedPersonIds}
+              onToggleExpanded={toggleExpanded}
+              onEditPerson={setEditingPerson}
+              onDeletePerson={handleDeletePerson}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <AddPersonModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleAddSuccess}
+        existingOrgs={organizations}
+      />
+      
+      {editingPerson && (
+        <EditPersonModal
+          isOpen={!!editingPerson}
+          onClose={() => setEditingPerson(null)}
+          onSuccess={handleEditSuccess}
+          person={editingPerson}
+          existingOrgs={organizations}
+        />
+      )}
+    </div>
+  );
+}
+
