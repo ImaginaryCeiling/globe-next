@@ -119,10 +119,12 @@ export default function CRMPeopleTable({
 
             return (
               <React.Fragment key={person.id}>
-                <tr className="border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors group">
+                <tr 
+                  onClick={() => onToggleExpanded(person.id)}
+                  className="border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors group cursor-pointer"
+                >
                   <td className="p-3 sm:p-4">
-                    <button
-                      onClick={() => onToggleExpanded(person.id)}
+                    <div
                       className="text-zinc-500 hover:text-white transition-colors"
                       aria-label={isExpanded ? 'Collapse' : 'Expand'}
                     >
@@ -140,7 +142,7 @@ export default function CRMPeopleTable({
                       >
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
-                    </button>
+                    </div>
                   </td>
                   <td className="p-3 sm:p-4">
                     <div className="font-semibold text-white">{person.name}</div>
@@ -218,7 +220,10 @@ export default function CRMPeopleTable({
                   <td className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => onEditPerson(person)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditPerson(person);
+                        }}
                         className="text-zinc-500 hover:text-white p-1 transition-colors"
                         title="Edit"
                       >
@@ -230,7 +235,8 @@ export default function CRMPeopleTable({
                       {confirmDeleteId === person.id ? (
                         <div className="flex items-center gap-1 bg-zinc-800 rounded px-1">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               onDeletePerson(person.id);
                               setConfirmDeleteId(null);
                             }}
@@ -239,7 +245,10 @@ export default function CRMPeopleTable({
                             Confirm
                           </button>
                           <button
-                            onClick={() => setConfirmDeleteId(null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteId(null);
+                            }}
                             className="text-zinc-500 hover:text-zinc-300 text-xs px-1 transition-colors"
                           >
                             ✕
@@ -247,7 +256,10 @@ export default function CRMPeopleTable({
                         </div>
                       ) : (
                         <button
-                          onClick={() => setConfirmDeleteId(person.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(person.id);
+                          }}
                           className="text-zinc-500 hover:text-red-500 p-1 transition-colors"
                           title="Delete"
                         >
