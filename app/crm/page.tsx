@@ -1,22 +1,30 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import type { Person, Event, Organization, Interaction } from '../types/schema';
+import type { Person } from '../types/schema';
 import Navigation from '../components/Navigation';
 import AddPersonModal from '../components/AddPersonModal';
 import EditPersonModal from '../components/EditPersonModal';
 import CRMPeopleTable from '../components/CRMPeopleTable';
 import SearchBar from '../components/SearchBar';
 import FilterPanel from '../components/FilterPanel';
+import { usePeople } from '../hooks/usePeople';
+import { useEvents } from '../hooks/useEvents';
+import { useOrganizations } from '../hooks/useOrganizations';
+import { useInteractions } from '../hooks/useInteractions';
+import { useQueryClient } from '@tanstack/react-query';
 
 type SortField = 'name' | 'created_at' | 'last_interaction';
 type SortDirection = 'asc' | 'desc';
 
 export default function CRMPage() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const queryClient = useQueryClient();
+  
+  // Use TanStack Query hooks - data is now cached!
+  const { data: people = [], isLoading: peopleLoading } = usePeople();
+  const { data: events = [], isLoading: eventsLoading } = useEvents();
+  const { data: organizations = [], isLoading: orgsLoading } = useOrganizations();
+  const { data: interactions = [], isLoading: interactionsLoading } = useInteractions();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
@@ -46,30 +54,6 @@ export default function CRMPage() {
   
   // Expanded rows for interaction history
   const [expandedPersonIds, setExpandedPersonIds] = useState<Set<string>>(new Set());
-
-  // Load initial data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [peopleRes, eventsRes, orgsRes, interactionsRes] = await Promise.all([
-          fetch('/api/people'),
-          fetch('/api/events'),
-          fetch('/api/organizations'),
-          fetch('/api/interactions')
-        ]);
-
-        if (peopleRes.ok) setPeople(await peopleRes.json());
-        if (eventsRes.ok) setEvents(await eventsRes.json());
-        if (orgsRes.ok) setOrganizations(await orgsRes.json());
-        if (interactionsRes.ok) setInteractions(await interactionsRes.json());
-
-      } catch (err) {
-        console.error('Error loading data:', err);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   // Filter and sort people
   const filteredAndSortedPeople = useMemo(() => {
@@ -142,11 +126,13 @@ export default function CRMPage() {
   }, [people, searchQuery, selectedOrgIds, dateFilter, sortField, sortDirection, interactions]);
 
   const handleAddSuccess = (newPerson: Person) => {
-    setPeople(prev => [newPerson, ...prev]);
+    // Invalidate and refetch people data
+    queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
   const handleEditSuccess = (updatedPerson: Person) => {
-    setPeople(prev => prev.map(p => p.id === updatedPerson.id ? updatedPerson : p));
+    // Invalidate and refetch people data
+    queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
   const handleDeletePerson = async (id: string) => {
@@ -154,8 +140,9 @@ export default function CRMPage() {
       const res = await fetch(`/api/people/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       
-      setPeople(prev => prev.filter(p => p.id !== id));
-      setInteractions(prev => prev.filter(i => i.person_id !== id));
+      // Invalidate and refetch people and interactions data
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['interactions'] });
     } catch (err) {
       console.error(err);
       alert('Failed to delete person');
@@ -188,6 +175,15 @@ export default function CRMPage() {
     setSelectedOrgIds([]);
     setDateFilter({});
   };
+
+  // Show loading state if any data is loading
+  if (peopleLoading || eventsLoading || orgsLoading || interactionsLoading) {
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-screen bg-black overflow-hidden flex">
