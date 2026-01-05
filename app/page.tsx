@@ -2,19 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import type { Person, Event, Organization } from './types/schema';
+import type { Person } from './types/schema';
 import SidePanel from './components/SidePanel';
 import Navigation from './components/Navigation';
 import AddPersonModal from './components/AddPersonModal';
 import EditPersonModal from './components/EditPersonModal';
+import { usePeople } from './hooks/usePeople';
+import { useEvents } from './hooks/useEvents';
+import { useOrganizations } from './hooks/useOrganizations';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Dynamically import Map component (client-side only)
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
 export default function Home() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const queryClient = useQueryClient();
+  
+  // Use TanStack Query hooks - data is now cached!
+  const { data: people = [], isLoading: peopleLoading } = usePeople();
+  const { data: events = [], isLoading: eventsLoading } = useEvents();
+  const { data: organizations = [], isLoading: orgsLoading } = useOrganizations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
@@ -33,39 +40,19 @@ export default function Home() {
     }
   }, [isNavOpen]);
 
-  // Load initial data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [peopleRes, eventsRes, orgsRes] = await Promise.all([
-          fetch('/api/people'),
-          fetch('/api/events'),
-          fetch('/api/organizations')
-        ]);
-
-        if (peopleRes.ok) setPeople(await peopleRes.json());
-        if (eventsRes.ok) setEvents(await eventsRes.json());
-        if (orgsRes.ok) setOrganizations(await orgsRes.json());
-
-      } catch (err) {
-        console.error('Error loading data:', err);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const handlePersonClick = (person: Person) => {
     console.log('Clicked person:', person);
     // Could open side panel detail view or similar
   };
 
   const handleAddSuccess = (newPerson: Person) => {
-    setPeople(prev => [newPerson, ...prev]);
+    // Invalidate and refetch people data
+    queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
   const handleEditSuccess = (updatedPerson: Person) => {
-    setPeople(prev => prev.map(p => p.id === updatedPerson.id ? updatedPerson : p));
+    // Invalidate and refetch people data
+    queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
   const handleDeletePerson = async (id: string) => {
@@ -73,12 +60,22 @@ export default function Home() {
        const res = await fetch(`/api/people/${id}`, { method: 'DELETE' });
        if (!res.ok) throw new Error('Failed to delete');
        
-       setPeople(prev => prev.filter(p => p.id !== id));
+       // Invalidate and refetch people data
+       queryClient.invalidateQueries({ queryKey: ['people'] });
     } catch (err) {
       console.error(err);
       alert('Failed to delete person');
     }
   };
+
+  // Show loading state if any data is loading
+  if (peopleLoading || eventsLoading || orgsLoading) {
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-screen bg-black overflow-hidden flex">
