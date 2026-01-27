@@ -16,7 +16,7 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
   const navItems = [
     { 
       name: 'Map', 
-      href: '/', 
+      href: '/dashboard', 
       active: true,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,7 +56,7 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
       {isExpanded && (
         <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
           <Link href="/" className="text-white text-2xl font-bold flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="w-3 h-3 bg-blue-500 rounded-full inline-block"></span>
+            <span className="w-3 h-3 bg-amber-500 rounded-full inline-block"></span>
             Globe
           </Link>
           <button 
@@ -75,7 +75,7 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
       {/* Nav Items - Stacked vertically */}
       <nav className="flex-1 p-4 space-y-2">
         {navItems.filter(item => item.active).map((item) => {
-          const isActive = pathname === item.href || (item.href === '/' && pathname === '/');
+          const isActive = pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard');
           return (
             <Link
               key={item.name}
