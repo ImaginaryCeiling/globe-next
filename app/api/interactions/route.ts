@@ -19,7 +19,7 @@ export async function GET() {
 
     if (error) throw error;
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch interactions' }, { status: 500 });
   }
 }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     if (error) throw error;
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create interaction' }, { status: 500 });
   }
 }

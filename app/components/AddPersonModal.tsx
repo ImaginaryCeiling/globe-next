@@ -27,7 +27,6 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
   
   const [locationQuery, setLocationQuery] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
-  const [isGeocoding, setIsGeocoding] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
   
   const [personData, setPersonData] = useState({
@@ -45,24 +44,24 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
   
   // Initialize Google Places Autocomplete
   useEffect(() => {
-    let autocomplete: any = null;
+    let autocomplete: google.maps.places.Autocomplete | null = null;
 
-    if (step === 2 && locationInputRef.current && (window as any).google) {
+    if (step === 2 && locationInputRef.current && (window as { google?: typeof google }).google) {
       // Load the places library if not already loaded
       // We are using the main script loader, but we need to ensure 'places' lib is accessible
       // The script tag includes libraries=places so google.maps.places should be available
       
       const initAutocomplete = async () => {
         try {
-            const { Autocomplete } = await (window as any).google.maps.importLibrary("places");
+            const { Autocomplete } = await (window as { google: typeof google }).google.maps.importLibrary("places") as google.maps.PlacesLibrary;
             
-            autocomplete = new Autocomplete(locationInputRef.current, {
+            autocomplete = new Autocomplete(locationInputRef.current!, {
                 fields: ["geometry", "formatted_address", "name"],
                 types: ['geocode', 'establishment']
             });
 
             autocomplete.addListener("place_changed", () => {
-                const place = autocomplete.getPlace();
+                const place = autocomplete!.getPlace();
                 
                 if (!place.geometry || !place.geometry.location) {
                     // User entered the name of a Place that was not suggested and
@@ -72,8 +71,8 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
 
                 setPersonData(prev => ({
                     ...prev,
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
+                    lat: place.geometry!.location!.lat().toString(),
+                    lng: place.geometry!.location!.lng().toString()
                 }));
                 
                 // Prefer name for the display/query, save address separately
@@ -93,7 +92,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
 
     return () => {
         if (autocomplete) {
-            (window as any).google.maps.event.clearInstanceListeners(autocomplete);
+            (window as { google: typeof google }).google.maps.event.clearInstanceListeners(autocomplete);
         }
     };
   }, [step, isOpen]);
@@ -145,8 +144,8 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
     setIsSubmitting(true);
 
     // Geocode if we have a query but no coords (or if query changed - though simplified logic here)
-    let lat = personData.lat;
-    let lng = personData.lng;
+    const lat = personData.lat;
+    const lng = personData.lng;
 
     // Fallback manual validation if Google Autocomplete didn't catch it
     if (locationQuery && (!lat || !lng)) {

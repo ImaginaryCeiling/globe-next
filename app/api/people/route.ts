@@ -25,9 +25,9 @@ export async function GET() {
     if (error) throw error;
 
     // Flatten structure slightly for frontend convenience if needed
-    const formattedData = data.map((p: any) => ({
+    const formattedData = data.map((p: { organizations: { role: string; organization: object }[] }) => ({
       ...p,
-      organizations: p.organizations.map((po: any) => ({
+      organizations: p.organizations.map((po: { role: string; organization: object }) => ({
         ...po.organization,
         role: po.role // Attach role to the org object for display
       }))

@@ -45,12 +45,12 @@ export default function DashboardPage() {
     // Could open side panel detail view or similar
   };
 
-  const handleAddSuccess = (newPerson: Person) => {
+  const handleAddSuccess = () => {
     // Invalidate and refetch people data
     queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
-  const handleEditSuccess = (updatedPerson: Person) => {
+  const handleEditSuccess = () => {
     // Invalidate and refetch people data
     queryClient.invalidateQueries({ queryKey: ['people'] });
   };

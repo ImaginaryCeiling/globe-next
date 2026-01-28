@@ -97,8 +97,8 @@ export default function CRMPage() {
 
     // Apply sorting
     filtered.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number = '';
+      let bValue: string | number = '';
 
       if (sortField === 'name') {
         aValue = a.name.toLowerCase();
@@ -125,12 +125,12 @@ export default function CRMPage() {
     return filtered;
   }, [people, searchQuery, selectedOrgIds, dateFilter, sortField, sortDirection, interactions]);
 
-  const handleAddSuccess = (newPerson: Person) => {
+  const handleAddSuccess = () => {
     // Invalidate and refetch people data
     queryClient.invalidateQueries({ queryKey: ['people'] });
   };
 
-  const handleEditSuccess = (updatedPerson: Person) => {
+  const handleEditSuccess = () => {
     // Invalidate and refetch people data
     queryClient.invalidateQueries({ queryKey: ['people'] });
   };

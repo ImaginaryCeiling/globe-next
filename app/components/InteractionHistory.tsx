@@ -3,12 +3,11 @@
 import type { Interaction, Event } from '../types/schema';
 
 interface InteractionHistoryProps {
-  personId: string;
   interactions: Interaction[];
   events: Event[];
 }
 
-export default function InteractionHistory({ personId, interactions, events }: InteractionHistoryProps) {
+export default function InteractionHistory({ interactions, events }: InteractionHistoryProps) {
   // Sort interactions by date (newest first)
   const sortedInteractions = [...interactions].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()

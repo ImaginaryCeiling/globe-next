@@ -278,7 +278,6 @@ export default function CRMPeopleTable({
                   <tr>
                     <td colSpan={9} className="p-0 bg-zinc-900/50">
                       <InteractionHistory
-                        personId={person.id}
                         interactions={personInteractions}
                         events={events}
                       />

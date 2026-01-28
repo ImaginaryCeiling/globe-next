@@ -15,7 +15,7 @@ interface SidePanelProps {
 
 type Tab = 'people' | 'events' | 'orgs';
 
-export default function SidePanel({ people, events, organizations, onClose, onAddClick, onEditPerson, onDeletePerson }: SidePanelProps) {
+export default function SidePanel({ people, events, organizations, onAddClick, onEditPerson, onDeletePerson }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [isExpanded, setIsExpanded] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export default function SidePanel({ people, events, organizations, onClose, onAd
                     <div className="flex items-center gap-1 bg-zinc-800 rounded px-1">
                       <button
                         onClick={() => {
-                          onDeletePerson && onDeletePerson(person.id);
+                          onDeletePerson?.(person.id);
                           setConfirmDeleteId(null);
                         }}
                         className="text-red-500 hover:text-red-400 text-xs font-bold px-1"

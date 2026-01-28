@@ -38,8 +38,6 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
   }, [isOpen, person]);
 
   // Form State
-  const [orgName, setOrgName] = useState('');
-  const [isNewOrg, setIsNewOrg] = useState(false);
   const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>([]);
   
   const [locationQuery, setLocationQuery] = useState('');
@@ -58,20 +56,20 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
-    let autocomplete: any = null;
+    let autocomplete: google.maps.places.Autocomplete | null = null;
 
-    if (isOpen && locationInputRef.current && (window as any).google) {
+    if (isOpen && locationInputRef.current && (window as { google?: typeof google }).google) {
       const initAutocomplete = async () => {
         try {
-            const { Autocomplete } = await (window as any).google.maps.importLibrary("places");
+            const { Autocomplete } = await (window as { google: typeof google }).google.maps.importLibrary("places") as google.maps.PlacesLibrary;
             
-            autocomplete = new Autocomplete(locationInputRef.current, {
+            autocomplete = new Autocomplete(locationInputRef.current!, {
                 fields: ["geometry", "formatted_address", "name"],
                 types: ['geocode', 'establishment']
             });
 
             autocomplete.addListener("place_changed", () => {
-                const place = autocomplete.getPlace();
+                const place = autocomplete!.getPlace();
                 
                 if (!place.geometry || !place.geometry.location) {
                     return;
@@ -79,8 +77,8 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
 
                 setPersonData(prev => ({
                     ...prev,
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
+                    lat: place.geometry!.location!.lat().toString(),
+                    lng: place.geometry!.location!.lng().toString()
                 }));
                 
                 const name = place.name || place.formatted_address || '';
@@ -99,42 +97,13 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
 
     return () => {
         if (autocomplete) {
-            (window as any).google.maps.event.clearInstanceListeners(autocomplete);
+            (window as { google: typeof google }).google.maps.event.clearInstanceListeners(autocomplete);
         }
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleOrgSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // ... reuse logic from AddPersonModal for creating orgs if needed, 
-    // but for now let's keep it simple and assume user just selects existing ones or we duplicate logic.
-    // Duplicating logic for speed as requested.
-    
-    if (isNewOrg && orgName) {
-      setIsSubmitting(true);
-      try {
-        const res = await fetch('/api/organizations', {
-          method: 'POST',
-          body: JSON.stringify({ name: orgName })
-        });
-        const newOrg = await res.json();
-        
-        setExistingOrgs([...existingOrgs, newOrg]);
-        setSelectedOrgIds([...selectedOrgIds, newOrg.id]);
-        
-        setOrgName('');
-        setIsNewOrg(false);
-      } catch (err) {
-        console.error(err);
-        alert('Failed to create organization');
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
-  
   const toggleOrgSelection = (id: string) => {
     if (selectedOrgIds.includes(id)) {
       setSelectedOrgIds(selectedOrgIds.filter(oid => oid !== id));
@@ -147,8 +116,8 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
     e.preventDefault();
     setIsSubmitting(true);
 
-    let lat = personData.lat;
-    let lng = personData.lng;
+    const lat = personData.lat;
+    const lng = personData.lng;
 
     if (locationQuery && (!lat || !lng)) {
        alert('Please select a location from the dropdown suggestions.');

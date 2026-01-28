@@ -27,7 +27,7 @@ export interface Person {
     linkedin?: string;
     instagram?: string;
     twitter?: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   };
   // Removed single organization_id
   current_location_lat: number;

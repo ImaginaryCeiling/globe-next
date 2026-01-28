@@ -18,6 +18,29 @@ export default function Map({ people, onPersonClick }: MapProps) {
   const [hoveredPerson, setHoveredPerson] = useState<Person | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
+  // Helper to update GeoJSON data - defined before use
+  const updateSourceData = () => {
+      if (!map.current || !map.current.getSource('people')) return;
+
+      const features = peopleRef.current.map(p => ({
+          type: 'Feature' as const,
+          geometry: {
+              type: 'Point' as const,
+              coordinates: [p.current_location_lng, p.current_location_lat]
+          },
+          properties: {
+              id: p.id,
+              name: p.name
+          }
+      }));
+
+      const source = map.current.getSource('people') as maplibregl.GeoJSONSource;
+      source.setData({
+          type: 'FeatureCollection',
+          features: features
+      });
+  };
+
   useEffect(() => {
     peopleRef.current = people;
     if (map.current && map.current.getSource('people')) {
@@ -183,7 +206,7 @@ export default function Map({ people, onPersonClick }: MapProps) {
         
         source.getClusterExpansionZoom(clusterId).then((zoom) => {
             map.current?.easeTo({
-                center: (features?.[0]?.geometry as any).coordinates,
+                center: (features?.[0]?.geometry as GeoJSON.Point).coordinates as [number, number],
                 zoom: zoom || 14
             });
         }).catch(err => console.error(err));
@@ -247,34 +270,8 @@ export default function Map({ people, onPersonClick }: MapProps) {
       map.current?.remove();
       map.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLocation]);
-
-  // Helper to update GeoJSON data
-  const updateSourceData = () => {
-      if (!map.current || !map.current.getSource('people')) return;
-
-      const features = peopleRef.current.map(p => ({
-          type: 'Feature',
-          geometry: {
-              type: 'Point',
-              coordinates: [p.current_location_lng, p.current_location_lat]
-          },
-          properties: {
-              id: p.id,
-              name: p.name
-          }
-      }));
-
-      const source = map.current.getSource('people') as maplibregl.GeoJSONSource;
-      source.setData({
-          type: 'FeatureCollection',
-          features: features as any
-      });
-  };
-
-  // Watch for people changes -> handled by the ref updater above mostly, 
-  // but we keep the effect to trigger updates when people change AND map is ready.
-  // We merged the logic into the previous effect.
 
   const recenterMap = () => {
     if (map.current && userLocation) {
