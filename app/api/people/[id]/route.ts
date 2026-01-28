@@ -6,15 +6,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const body = await request.json();
     const supabase = await createClient();
-    
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Extract org IDs from body if they are being updated
     const { organization_ids, ...personData } = body;
 
-    // 1. Update Person
+    // 1. Update Person (only if owned by user)
     const { data: person, error: personError } = await supabase
       .from('people')
       .update(personData)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -37,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           person_id: id,
           organization_id: orgId
         }));
-        
+
         const { error: linkError } = await supabase
           .from('people_organizations')
           .insert(links);
@@ -58,13 +65,18 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
     const supabase = await createClient();
 
-    // Delete person (cascading deletes should handle relations if configured, 
-    // but we can manually delete from join table first to be safe if not)
-    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Delete person (only if owned by user)
     const { error } = await supabase
       .from('people')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
@@ -74,4 +86,3 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: 'Failed to delete person' }, { status: 500 });
   }
 }
-

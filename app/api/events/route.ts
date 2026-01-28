@@ -4,9 +4,17 @@ import { createClient } from '@/app/utils/supabase/server';
 export async function GET() {
   try {
     const supabase = await createClient();
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { data, error } = await supabase
       .from('events')
       .select('*')
+      .eq('user_id', user.id)
       .order('date', { ascending: false });
 
     if (error) throw error;
@@ -20,10 +28,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const supabase = await createClient();
-    
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { data, error } = await supabase
       .from('events')
-      .insert(body)
+      .insert({ ...body, user_id: user.id })
       .select()
       .single();
 
@@ -33,5 +47,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
   }
 }
-
-

@@ -4,19 +4,26 @@ import { createClient } from '@/app/utils/supabase/server';
 export async function GET() {
   try {
     const supabase = await createClient();
-    
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Supabase query syntax for many-to-many is a bit specific with join tables.
     // We want people and their organizations.
     // This syntax '*, organizations:people_organizations(organization:organizations(*))'
     // joins people -> people_organizations -> organizations
-    
+
     const { data, error } = await supabase
       .from('people')
       .select('*, organizations:people_organizations(role, organization:organizations(*))')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
+
     // Flatten structure slightly for frontend convenience if needed
     const formattedData = data.map((p: any) => ({
       ...p,
@@ -37,14 +44,20 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const supabase = await createClient();
-    
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Extract org IDs from body
     const { organization_ids, ...personData } = body;
 
-    // 1. Create Person
+    // 1. Create Person with user_id
     const { data: person, error: personError } = await supabase
       .from('people')
-      .insert(personData)
+      .insert({ ...personData, user_id: user.id })
       .select()
       .single();
 
@@ -56,7 +69,7 @@ export async function POST(request: Request) {
         person_id: person.id,
         organization_id: orgId
       }));
-      
+
       const { error: linkError } = await supabase
         .from('people_organizations')
         .insert(links);
