@@ -270,6 +270,11 @@ export default function Map({ people, onPersonClick }: MapProps) {
       map.current?.remove();
       map.current = null;
     };
+  // WORKAROUND: ESLint exhaustive-deps disabled intentionally
+  // `onPersonClick` and `people` are accessed via refs (peopleRef) to avoid
+  // recreating the map when these props change. The map updates data via
+  // updateSourceData() which reads from peopleRef.current. If you add new
+  // dependencies that should trigger map recreation, add them here.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLocation]);
 

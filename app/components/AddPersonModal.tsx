@@ -55,12 +55,18 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
         try {
             const { Autocomplete } = await (window as { google: typeof google }).google.maps.importLibrary("places") as google.maps.PlacesLibrary;
             
+            // WORKAROUND: Non-null assertions (!) used for Google Maps API
+            // locationInputRef.current is guaranteed non-null by the outer if-check,
+            // but TypeScript can't infer this. If Google Maps API changes or the
+            // ref becomes null unexpectedly, these will throw. The outer condition
+            // `locationInputRef.current && window.google` should prevent this.
             autocomplete = new Autocomplete(locationInputRef.current!, {
                 fields: ["geometry", "formatted_address", "name"],
                 types: ['geocode', 'establishment']
             });
 
             autocomplete.addListener("place_changed", () => {
+                // Non-null assertion: autocomplete exists because we're inside its listener
                 const place = autocomplete!.getPlace();
                 
                 if (!place.geometry || !place.geometry.location) {
@@ -69,6 +75,10 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
                     return;
                 }
 
+                // WORKAROUND: Non-null assertions on geometry.location
+                // The if-check above verifies these exist, but TypeScript loses
+                // that context inside the callback. If place.geometry or location
+                // is ever null despite the check, this will throw.
                 setPersonData(prev => ({
                     ...prev,
                     lat: place.geometry!.location!.lat().toString(),

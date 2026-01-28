@@ -156,6 +156,11 @@ function FeatureCard({
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
 
+  // WORKAROUND: ESLint rule disabled for hydration detection pattern
+  // This is a standard pattern to detect client-side mounting for animations.
+  // The lint rule warns against setState in effects, but this is intentional
+  // for SSR hydration. Alternative: use `useSyncExternalStore` with a
+  // subscription that always returns `true` on client.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
