@@ -111,9 +111,18 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
         {isExpanded ? (
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-900 transition-colors">
             <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 overflow-hidden shrink-0">
-              <span className="text-zinc-400 font-bold">
-                {user?.email?.[0].toUpperCase() ?? 'U'}
-              </span>
+              {user?.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="text-zinc-400 font-bold">
+                  {user?.email?.[0].toUpperCase() ?? 'U'}
+                </span>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-white text-sm font-medium truncate">
@@ -136,12 +145,21 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
         ) : (
           <button
             onClick={signOut}
-            className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 hover:border-zinc-600 transition-colors"
+            className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 hover:border-zinc-600 transition-colors overflow-hidden"
             title="Sign out"
           >
-            <span className="text-zinc-400 font-bold text-sm">
-              {user?.email?.[0].toUpperCase() ?? 'U'}
-            </span>
+            {user?.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="text-zinc-400 font-bold text-sm">
+                {user?.email?.[0].toUpperCase() ?? 'U'}
+              </span>
+            )}
           </button>
         )}
       </div>
