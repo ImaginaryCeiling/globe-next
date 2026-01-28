@@ -35,9 +35,9 @@ export async function updateSession(request: NextRequest) {
 
   // Define public routes that don't require authentication
   const publicRoutes = ['/login', '/signup', '/auth/callback', '/auth/confirm']
-  const isPublicRoute = publicRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  )
+  const isPublicRoute =
+    request.nextUrl.pathname === '/' ||
+    publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
 
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute) {
