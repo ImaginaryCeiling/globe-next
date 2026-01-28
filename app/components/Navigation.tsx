@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { useAuth } from '@/app/providers/AuthProvider';
 
 interface NavigationProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface NavigationProps {
 export default function Navigation({ isOpen, onToggle }: NavigationProps) {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
+  const { user, signOut } = useAuth();
   
   const navItems = [
     { 
@@ -107,19 +109,40 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
       {/* User Profile */}
       <div className={`p-4 border-t border-zinc-800 shrink-0 ${isExpanded ? '' : 'flex flex-col items-center gap-2'}`}>
         {isExpanded ? (
-          <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-900 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-900 transition-colors">
             <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 overflow-hidden shrink-0">
-              <span className="text-zinc-400 font-bold">U</span>
+              <span className="text-zinc-400 font-bold">
+                {user?.email?.[0].toUpperCase() ?? 'U'}
+              </span>
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-sm font-medium truncate">User</p>
-              <p className="text-zinc-500 text-xs truncate">user@example.com</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-sm font-medium truncate">
+                {user?.user_metadata?.full_name ?? 'User'}
+              </p>
+              <p className="text-zinc-500 text-xs truncate">{user?.email ?? 'user@example.com'}</p>
             </div>
+            <button
+              onClick={signOut}
+              className="text-zinc-500 hover:text-white transition-colors p-1"
+              title="Sign out"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 overflow-hidden">
-            <span className="text-zinc-400 font-bold text-sm">U</span>
-          </div>
+          <button
+            onClick={signOut}
+            className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 hover:border-zinc-600 transition-colors"
+            title="Sign out"
+          >
+            <span className="text-zinc-400 font-bold text-sm">
+              {user?.email?.[0].toUpperCase() ?? 'U'}
+            </span>
+          </button>
         )}
       </div>
     </div>
