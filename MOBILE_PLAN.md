@@ -4,15 +4,10 @@
 
 Globe is a Next.js 16 / React 19 personal CRM with a map-based dashboard, CRM table view, and interaction tracking. It already has **partial** mobile support via Tailwind responsive classes (collapsible nav, stacked layouts, responsive typography). However, several areas need work for a good mobile experience, and there's no PWA or native app setup.
 
-## Decision: PWA vs Native App vs Responsive Web
+## Strategy
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Responsive Web (current path)** | No new tooling, works now, single codebase | No offline, no home screen, no push notifications |
-| **PWA (recommended first step)** | Home screen install, offline caching, push notifications, still one codebase | Limited iOS Safari support for some APIs |
-| **Native App (React Native / Expo)** | Full native feel, access to contacts/camera/etc. | Separate codebase, app store review, significant effort |
-
-**Recommendation:** Improve responsive design first, then add PWA support. Consider a native app later only if needed for features like contact sync or camera access.
+1. **Now**: Improve responsive web experience (Phases 1-3 below)
+2. **Later**: Build a native iOS app in Swift (Phase 4) in a separate repo, sharing the same Supabase backend
 
 ---
 
@@ -87,12 +82,50 @@ Globe is a Next.js 16 / React 19 personal CRM with a map-based dashboard, CRM ta
 
 ---
 
-## Phase 4: Native App (Future, if needed)
+## Phase 4: Native iOS App (Swift — Separate Repo)
 
-Only pursue this if the PWA approach doesn't meet needs. Would likely use:
-- **Expo / React Native** with shared business logic
-- **Capacitor** as a lighter alternative (wraps the web app in a native shell)
-- Key native-only features: contact book sync, background location, widgets
+A standalone Swift app in its own repo, consuming the same Supabase backend.
+
+### 4.1 Project Setup
+- New repo (e.g., `globe-ios`)
+- Xcode project targeting iOS 17+
+- Swift Package Manager for dependencies
+- Supabase Swift SDK (`supabase-swift`) for auth and database
+
+### 4.2 Architecture
+- **SwiftUI** for all UI
+- **MVVM** pattern with `@Observable` (Swift 5.9+)
+- Shared Supabase client singleton for auth + API
+- Same Supabase project/keys as the web app — no backend changes needed
+
+### 4.3 Core Screens (mirroring web)
+- **Map View**: MapKit with custom annotations for contacts, clustering
+- **People List**: `List` / `LazyVStack` with search, pull-to-refresh
+- **Person Detail**: Contact info, interaction history, edit form
+- **Add/Edit Person**: Form with MapKit place search (replacing Google Places)
+- **Organizations & Events**: List + detail views
+- **Login/Signup**: Supabase Auth (email/password, Google OAuth via ASWebAuthenticationSession)
+
+### 4.4 iOS-Native Features
+- **Contacts integration**: Import/link from iOS Contacts (`CNContactStore`)
+- **MapKit**: Native Apple Maps with smooth performance, Look Around
+- **Widgets**: WidgetKit for "follow up with" reminders on home screen
+- **Push notifications**: APNs via Supabase Edge Functions
+- **Spotlight search**: Index contacts for system-wide search
+- **Shortcuts**: Siri Shortcuts for "Log interaction with [person]"
+- **Share extension**: Share a contact or note from other apps into Globe
+- **Haptics**: Tactile feedback on interactions
+
+### 4.5 Data & Sync
+- Same Supabase Postgres database — no migration needed
+- Supabase Realtime for live updates across web and iOS
+- Core Data or SwiftData for offline cache
+- Background refresh (`BGAppRefreshTask`) to keep data current
+
+### 4.6 Distribution
+- TestFlight for beta testing
+- App Store submission (requires Apple Developer Program, $99/year)
+- App Store assets: screenshots, description, privacy policy
 
 ---
 
