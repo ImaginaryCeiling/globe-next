@@ -182,11 +182,11 @@ export default function EditPersonModal({ isOpen, onClose, onSuccess, person, ex
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm md:p-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-t-2xl md:rounded-lg w-full md:max-w-md p-6 h-[92vh] md:h-auto md:max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-white text-xl font-bold">Edit Person</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white">✕</button>
+          <button onClick={onClose} className="text-zinc-500 hover:text-white p-2 -mr-2">✕</button>
         </div>
 
         <form onSubmit={handlePersonSubmit} className="space-y-6">
