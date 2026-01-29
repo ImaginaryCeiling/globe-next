@@ -7,7 +7,25 @@ Globe is a Next.js 16 / React 19 personal CRM with a map-based dashboard, CRM ta
 ## Strategy
 
 1. **Now**: Improve responsive web experience (Phases 1-3 below)
-2. **Later**: Build a native iOS app in Swift (Phase 4) in a separate repo, sharing the same Supabase backend
+2. **Later**: Build a native iOS app in Swift (Phase 4) in the same monorepo
+
+### Repo Structure
+
+```
+globe/
+├── apps/
+│   ├── web/              # Next.js app (current codebase)
+│   └── ios/              # Swift/Xcode project (added later)
+├── supabase/             # Shared backend: migrations, edge functions, seed data
+├── contracts/            # Shared docs only — API schemas, DB types reference, conventions
+│   ├── db-schema.md      # Single source of truth for table definitions
+│   └── api-conventions.md
+└── README.md
+```
+
+- **No shared runtime code** — web uses TypeScript, iOS uses Swift. Each app owns its own types and API layer.
+- **`supabase/`** is the single source of truth for the backend (migrations, RLS policies, edge functions).
+- **`contracts/`** is lightweight documentation so both apps agree on API shapes and naming, not importable code.
 
 ---
 
@@ -87,8 +105,7 @@ Globe is a Next.js 16 / React 19 personal CRM with a map-based dashboard, CRM ta
 A standalone Swift app in its own repo, consuming the same Supabase backend.
 
 ### 4.1 Project Setup
-- New repo (e.g., `globe-ios`)
-- Xcode project targeting iOS 17+
+- Xcode project at `apps/ios/`, targeting iOS 17+
 - Swift Package Manager for dependencies
 - Supabase Swift SDK (`supabase-swift`) for auth and database
 
