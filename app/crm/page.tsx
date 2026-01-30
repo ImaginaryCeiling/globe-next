@@ -192,23 +192,23 @@ export default function CRMPage() {
 
       
       {/* Main Content Area */}
-      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'ml-64' : 'ml-16'}`}>
+      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-0`}>
         <div className="h-full flex flex-col bg-black">
           {/* Header */}
-          <div className="border-b border-zinc-800 p-4 sm:p-6 shrink-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-              <h1 className="text-white text-2xl sm:text-3xl font-bold">CRM</h1>
+          <div className="border-b border-zinc-800 p-4 md:p-6 shrink-0">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <h1 className="text-white text-2xl md:text-3xl font-bold">CRM</h1>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full sm:w-auto"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shrink-0"
               >
-                + Add Person
+                + Add
               </button>
             </div>
 
             {/* Search and Filters */}
-            <div className="flex flex-col gap-4">
-              <SearchBar 
+            <div className="flex flex-col gap-3">
+              <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
               />

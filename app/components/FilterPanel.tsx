@@ -33,12 +33,12 @@ export default function FilterPanel({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+    <div className="flex flex-wrap items-center gap-2 md:gap-4">
       {/* Organization Filter */}
       <div className="relative">
         <button
           onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white hover:border-blue-500/50 transition-colors text-sm sm:text-base"
+          className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white hover:border-blue-500/50 transition-colors text-sm"
         >
           <span>Organization</span>
           {selectedOrgIds.length > 0 && (
@@ -104,7 +104,7 @@ export default function FilterPanel({
           value={dateFilter.start || ''}
           onChange={(e) => onDateFilterChange({ ...dateFilter, start: e.target.value })}
           placeholder="Start date"
-          className="px-3 sm:px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
+          className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
         />
         <span className="text-zinc-500 text-sm">to</span>
         <input
@@ -112,7 +112,7 @@ export default function FilterPanel({
           value={dateFilter.end || ''}
           onChange={(e) => onDateFilterChange({ ...dateFilter, end: e.target.value })}
           placeholder="End date"
-          className="px-3 sm:px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
+          className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-colors"
         />
       </div>
 
@@ -120,7 +120,7 @@ export default function FilterPanel({
       {hasActiveFilters && (
         <button
           onClick={onClearFilters}
-          className="px-3 sm:px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors text-sm sm:text-base"
+          className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors text-sm"
         >
           Clear Filters
         </button>

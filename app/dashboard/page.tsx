@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
       
       {/* Main Content Area */}
-      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'ml-64' : 'ml-16'}`}>
+      <div className={`flex-1 relative h-full transition-all duration-300 ${isNavOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-0`}>
         <Map people={people} onPersonClick={handlePersonClick} />
         
         <SidePanel 
