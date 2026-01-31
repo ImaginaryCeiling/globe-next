@@ -11,6 +11,7 @@ import { usePeople } from '../hooks/usePeople';
 import { useEvents } from '../hooks/useEvents';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useQueryClient } from '@tanstack/react-query';
+import SplashScreen from '../components/SplashScreen';
 
 // Dynamically import Map component (client-side only)
 const Map = dynamic(() => import('../components/Map'), { ssr: false });
@@ -70,11 +71,7 @@ export default function DashboardPage() {
 
   // Show loading state if any data is loading
   if (peopleLoading || eventsLoading || orgsLoading) {
-    return (
-      <div className="w-full h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   return (

@@ -13,6 +13,7 @@ import { useEvents } from '../hooks/useEvents';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useInteractions } from '../hooks/useInteractions';
 import { useQueryClient } from '@tanstack/react-query';
+import SplashScreen from '../components/SplashScreen';
 
 type SortField = 'name' | 'created_at' | 'last_interaction';
 type SortDirection = 'asc' | 'desc';
@@ -178,11 +179,7 @@ export default function CRMPage() {
 
   // Show loading state if any data is loading
   if (peopleLoading || eventsLoading || orgsLoading || interactionsLoading) {
-    return (
-      <div className="w-full h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   return (
