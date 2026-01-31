@@ -7,7 +7,7 @@ function getCookieOptions(request: NextRequest) {
   
   return {
     // 30 days if remember me, otherwise session cookie (no maxAge)
-    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 14 } : {}),
     sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
   }
