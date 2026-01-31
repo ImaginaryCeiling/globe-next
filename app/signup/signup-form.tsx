@@ -4,10 +4,22 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/app/utils/supabase/client'
 
+// Helper to set the remember_me cookie
+function setRememberMeCookie(remember: boolean) {
+  if (remember) {
+    // Set cookie for 30 days
+    document.cookie = `remember_me=true; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`
+  } else {
+    // Delete the cookie
+    document.cookie = 'remember_me=; path=/; max-age=0'
+  }
+}
+
 export function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -30,6 +42,9 @@ export function SignupForm() {
       return
     }
 
+    // Set remember_me cookie before auth
+    setRememberMeCookie(rememberMe)
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -49,6 +64,9 @@ export function SignupForm() {
   }
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
+    // Set remember_me cookie before OAuth redirect
+    setRememberMeCookie(rememberMe)
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -134,6 +152,19 @@ export function SignupForm() {
             className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Confirm your password"
           />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            id="remember-me"
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-900"
+          />
+          <label htmlFor="remember-me" className="text-sm text-zinc-400">
+            Remember me for 30 days
+          </label>
         </div>
 
         <button
