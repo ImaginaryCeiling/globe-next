@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface NavigationProps {
   isOpen: boolean;
@@ -14,6 +15,26 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
   const { user, signOut } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Prefetch all app data on mount (works for mobile + desktop)
+  useEffect(() => {
+    const prefetch = (key: string, endpoint: string) => {
+      queryClient.prefetchQuery({
+        queryKey: [key],
+        queryFn: async () => {
+          const res = await fetch(endpoint);
+          if (!res.ok) throw new Error(`Failed to fetch ${key}`);
+          return res.json();
+        },
+      });
+    };
+
+    prefetch('people', '/api/people');
+    prefetch('events', '/api/events');
+    prefetch('organizations', '/api/organizations');
+    prefetch('interactions', '/api/interactions');
+  }, [queryClient]);
 
   const navItems = [
     {
