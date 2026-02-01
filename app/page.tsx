@@ -229,7 +229,7 @@ export default function LandingPage() {
             <p 
               className={`text-zinc-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
-              A beautiful CRM for humans. Map your relationships, track meaningful interactions, 
+              A beautiful PRM for humans. Map your relationships, track meaningful interactions, 
               and never forget the people who matter.
             </p>
 
@@ -249,10 +249,10 @@ export default function LandingPage() {
                 </span>
               </Link>
               <Link
-                href="/crm"
+                href="/PRM"
                 className="text-zinc-400 hover:text-white font-medium px-8 py-4 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all duration-300 hover:bg-zinc-900/50"
               >
-                View CRM Table
+                View PRM Table
               </Link>
             </div>
           </div>

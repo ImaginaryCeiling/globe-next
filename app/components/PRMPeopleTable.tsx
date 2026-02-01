@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import type { Person, Interaction, Event } from '../types/schema';
 import InteractionHistory from './InteractionHistory';
 
-interface CRMPeopleTableProps {
+interface PRMPeopleTableProps {
   people: Person[];
   interactions: Interaction[];
   events: Event[];
@@ -17,7 +17,7 @@ interface CRMPeopleTableProps {
   onDeletePerson: (id: string) => void;
 }
 
-export default function CRMPeopleTable({
+export default function PRMPeopleTable({
   people,
   interactions,
   events,
@@ -28,7 +28,7 @@ export default function CRMPeopleTable({
   onToggleExpanded,
   onEditPerson,
   onDeletePerson,
-}: CRMPeopleTableProps) {
+}: PRMPeopleTableProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const getLastInteraction = (personId: string): Interaction | null => {

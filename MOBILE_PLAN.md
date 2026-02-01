@@ -2,7 +2,7 @@
 
 ## Current State
 
-Globe is a Next.js 16 / React 19 personal CRM with a map-based dashboard, CRM table view, and interaction tracking. It already has **partial** mobile support via Tailwind responsive classes (collapsible nav, stacked layouts, responsive typography). However, several areas need work for a good mobile experience, and there's no PWA or native app setup.
+Globe is a Next.js 16 / React 19 personal PRM with a map-based dashboard, PRM table view, and interaction tracking. It already has **partial** mobile support via Tailwind responsive classes (collapsible nav, stacked layouts, responsive typography). However, several areas need work for a good mobile experience, and there's no PWA or native app setup.
 
 ## Strategy
 
@@ -33,7 +33,7 @@ globe/
 
 ### 1.1 Navigation
 - Convert sidebar to a bottom tab bar on mobile (`md:` breakpoint)
-- Tabs: Map, CRM, Search, Profile
+- Tabs: Map, PRM, Search, Profile
 - Keep sidebar for desktop
 
 ### 1.2 Dashboard (Map View)
@@ -41,7 +41,7 @@ globe/
 - Add a floating action button (FAB) for "Add Person" on mobile
 - Ensure map controls (zoom, locate) don't overlap with bottom sheet or nav
 
-### 1.3 CRM Table
+### 1.3 PRM Table
 - Replace the wide table with a card/list view on mobile (each person = one card)
 - Show name, company, location, last interaction on the card
 - Tap card to expand details (instead of expandable table rows)
@@ -87,7 +87,7 @@ globe/
 ## Phase 3: Mobile-Specific Features (Optional)
 
 ### 3.1 Touch Gestures
-- Swipe on CRM cards for quick actions (edit, log interaction)
+- Swipe on PRM cards for quick actions (edit, log interaction)
 - Pull-to-refresh on list views
 - Pinch-to-zoom already handled by Maplibre
 
@@ -149,7 +149,7 @@ A standalone Swift app in its own repo, consuming the same Supabase backend.
 ## Implementation Priority
 
 1. **Navigation → bottom tab bar on mobile** (highest impact)
-2. **CRM → card view on mobile** (the table is unusable on small screens)
+2. **PRM → card view on mobile** (the table is unusable on small screens)
 3. **Side panel → bottom sheet on mobile** (map dashboard usability)
 4. **Modals → full-screen on mobile** (form usability)
 5. **PWA manifest + service worker** (installability)

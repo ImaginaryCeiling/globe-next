@@ -5,7 +5,7 @@ import type { Person } from '../types/schema';
 import Navigation from '../components/Navigation';
 import AddPersonModal from '../components/AddPersonModal';
 import EditPersonModal from '../components/EditPersonModal';
-import CRMPeopleTable from '../components/CRMPeopleTable';
+import PRMPeopleTable from '../components/PRMPeopleTable';
 import SearchBar from '../components/SearchBar';
 import FilterPanel from '../components/FilterPanel';
 import { usePeople } from '../hooks/usePeople';
@@ -18,7 +18,7 @@ import SplashScreen from '../components/SplashScreen';
 type SortField = 'name' | 'created_at' | 'last_interaction';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMPage() {
+export default function prmPage() {
   const queryClient = useQueryClient();
   
   // Use TanStack Query hooks - data is now cached!
@@ -194,7 +194,7 @@ export default function CRMPage() {
           {/* Header */}
           <div className="border-b border-zinc-800 p-4 md:p-6 shrink-0">
             <div className="flex items-center justify-between gap-4 mb-4">
-              <h1 className="text-white text-2xl md:text-3xl font-bold">CRM</h1>
+              <h1 className="text-white text-2xl md:text-3xl font-bold">PRM</h1>
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shrink-0"
@@ -223,7 +223,7 @@ export default function CRMPage() {
 
           {/* Table */}
           <div className="flex-1 overflow-auto">
-            <CRMPeopleTable
+              <PRMPeopleTable
               people={filteredAndSortedPeople}
               interactions={interactions}
               events={events}
