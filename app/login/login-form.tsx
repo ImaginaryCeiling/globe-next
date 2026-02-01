@@ -8,7 +8,7 @@ import { createClient } from '@/app/utils/supabase/client'
 // Helper to set the remember_me cookie
 function setRememberMeCookie(remember: boolean) {
   if (remember) {
-    // Set cookie for 30 days
+    // Set cookie for 14 days
     document.cookie = `remember_me=true; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`
   } else {
     // Delete the cookie
@@ -116,7 +116,7 @@ export function LoginForm() {
             className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-zinc-900"
           />
           <label htmlFor="remember-me" className="text-sm text-zinc-400">
-            Remember me for 30 days
+            Remember me for 14 days
           </label>
         </div>
 
