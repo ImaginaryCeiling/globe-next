@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Person, Event, Organization } from '../types/schema';
+import PersonDetailModal from './PersonDetailModal';
 
 interface SidePanelProps {
   people: Person[];
@@ -22,6 +23,25 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
   const [expandedOrgIds, setExpandedOrgIds] = useState<Set<string>>(new Set());
   // Mobile bottom sheet: 'collapsed' (peek), 'half', 'full'
   const [sheetMode, setSheetMode] = useState<'collapsed' | 'half' | 'full'>('collapsed');
+  // Person detail modal state
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handlePersonClick = (person: Person) => {
+    setSelectedPerson(person);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedPerson(null);
+  };
+
+  const handleEditFromModal = (person: Person) => {
+    if (onEditPerson) {
+      onEditPerson(person);
+    }
+  };
 
   // Desktop collapsed state
   if (!isExpanded) {
@@ -58,12 +78,16 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
           people.map((person) => (
             <div
               key={person.id}
-              className="bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition-colors p-4 rounded-lg relative group"
+              onClick={() => handlePersonClick(person)}
+              className="bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition-colors p-4 rounded-lg relative group cursor-pointer"
             >
               {/* Actions (Top Right) */}
               <div className="absolute top-2 right-2 flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => onEditPerson && onEditPerson(person)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditPerson && onEditPerson(person);
+                  }}
                   className="text-zinc-500 hover:text-white p-1"
                   title="Edit"
                 >
@@ -76,7 +100,8 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
                 {confirmDeleteId === person.id ? (
                   <div className="flex items-center gap-1 bg-zinc-800 rounded px-1">
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         onDeletePerson?.(person.id);
                         setConfirmDeleteId(null);
                       }}
@@ -85,7 +110,10 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
                       Confirm
                     </button>
                     <button
-                      onClick={() => setConfirmDeleteId(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDeleteId(null);
+                      }}
                       className="text-zinc-500 hover:text-zinc-300 text-xs px-1"
                     >
                       ✕
@@ -93,7 +121,10 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
                   </div>
                 ) : (
                   <button
-                    onClick={() => setConfirmDeleteId(person.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDeleteId(person.id);
+                    }}
                     className="text-zinc-500 hover:text-blue-500 p-1"
                     title="Delete"
                   >
@@ -337,6 +368,14 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
         {/* Content — only show when not collapsed */}
         {sheetMode !== 'collapsed' && contentList}
       </div>
+
+      {/* Person Detail Modal */}
+      <PersonDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        person={selectedPerson}
+        onEdit={handleEditFromModal}
+      />
     </>
   );
 }
