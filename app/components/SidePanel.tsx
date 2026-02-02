@@ -1,22 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import type { Person, Event, Organization } from '../types/schema';
+import type { Person, Event, Organization, Interaction } from '../types/schema';
 import PersonDetailModal from './PersonDetailModal';
+import EventDetailModal from './EventDetailModal';
 
 interface SidePanelProps {
   people: Person[];
   events: Event[];
   organizations: Organization[];
+  interactions: Interaction[];
   onClose?: () => void;
   onAddClick: () => void;
+  onAddEventClick: () => void;
+  onAddInteractionClick: (eventContext?: Event) => void;
+  onEditEvent?: (event: Event) => void;
+  onDeleteEvent?: (id: string) => void;
   onEditPerson?: (person: Person) => void;
   onDeletePerson?: (id: string) => void;
+  onInteractionsChange: () => void;
 }
 
 type Tab = 'people' | 'events' | 'orgs';
 
-export default function SidePanel({ people, events, organizations, onAddClick, onEditPerson, onDeletePerson }: SidePanelProps) {
+export default function SidePanel({ people, events, organizations, interactions, onAddClick, onAddEventClick, onAddInteractionClick, onEditEvent, onDeleteEvent, onEditPerson, onDeletePerson, onInteractionsChange }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [isExpanded, setIsExpanded] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -26,6 +33,9 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
   // Person detail modal state
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // Event detail modal state
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
 
   const handlePersonClick = (person: Person) => {
     setSelectedPerson(person);
@@ -171,18 +181,45 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
         events.length === 0 ? (
           <div className="text-zinc-500 text-center mt-10">No events found.</div>
         ) : (
-          events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition-colors p-4 rounded-lg"
-            >
-              <h3 className="text-white text-lg font-semibold mb-1">{event.name}</h3>
-              <div className="text-blue-400 text-sm mb-2">
-                {new Date(event.date).toLocaleDateString()}
+          [...events].sort((a, b) => {
+            const now = Date.now();
+            const aDate = new Date(a.date).getTime();
+            const bDate = new Date(b.date).getTime();
+            const aFuture = aDate >= now;
+            const bFuture = bDate >= now;
+            if (aFuture && !bFuture) return -1;
+            if (!aFuture && bFuture) return 1;
+            return aFuture ? aDate - bDate : bDate - aDate;
+          }).map((event) => {
+            const count = interactions.filter(i => i.event_id === event.id).length;
+            return (
+              <div
+                key={event.id}
+                onClick={() => { setSelectedEvent(event); setIsEventDetailOpen(true); }}
+                className="bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition-colors p-4 rounded-lg cursor-pointer"
+              >
+                <div className="flex items-start justify-between">
+                  <h3 className="text-white text-lg font-semibold mb-1">{event.name}</h3>
+                  {event.type && (
+                    <span className="text-xs uppercase tracking-wide text-blue-400 bg-blue-900/20 px-1.5 py-0.5 rounded shrink-0 ml-2">
+                      {event.type}
+                    </span>
+                  )}
+                </div>
+                <div className="text-blue-400 text-sm mb-2">
+                  {new Date(event.date).toLocaleDateString()}
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-zinc-400 text-sm">{event.location_name}</p>
+                  {count > 0 && (
+                    <span className="text-zinc-500 text-xs bg-zinc-800 px-2 py-0.5 rounded">
+                      {count} interaction{count !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
               </div>
-              <p className="text-zinc-400 text-sm">{event.location_name}</p>
-            </div>
-          ))
+            );
+          })
         )
       )}
 
@@ -322,7 +359,10 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
           {tabBar}
           <div className="flex gap-2 items-center">
             <button
-              onClick={onAddClick}
+              onClick={() => {
+                if (activeTab === 'events') onAddEventClick();
+                else onAddClick();
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded transition-colors"
             >
               + Add
@@ -375,6 +415,19 @@ export default function SidePanel({ people, events, organizations, onAddClick, o
         onClose={handleCloseDetailModal}
         person={selectedPerson}
         onEdit={handleEditFromModal}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isEventDetailOpen}
+        onClose={() => { setIsEventDetailOpen(false); setSelectedEvent(null); }}
+        event={selectedEvent}
+        interactions={interactions}
+        people={people}
+        onEdit={(event) => { setIsEventDetailOpen(false); onEditEvent?.(event); }}
+        onDelete={(id) => { onDeleteEvent?.(id); }}
+        onAddInteraction={(event) => { onAddInteractionClick(event); }}
+        onInteractionsChange={onInteractionsChange}
       />
     </>
   );
