@@ -10,6 +10,61 @@ interface AddPersonModalProps {
   existingOrgs: Organization[];
 }
 
+// Parse VCF file content and extract contact fields
+function parseVcf(text: string): Record<string, string> {
+  const lines = text.split(/\r?\n/);
+  const contact: Record<string, string> = {};
+  
+  for (const line of lines) {
+    // Name (formatted name)
+    if (line.startsWith('FN:')) {
+      contact.name = line.slice(3);
+    }
+    // Phone number (handles various TEL formats)
+    else if (line.startsWith('TEL')) {
+      const value = line.split(':')[1];
+      if (value && !contact.phone) {
+        contact.phone = value.trim();
+      }
+    }
+    // Email (handles various EMAIL formats)
+    else if (line.startsWith('EMAIL')) {
+      const value = line.split(':')[1];
+      if (value && !contact.email) {
+        contact.email = value.trim();
+      }
+    }
+    // Notes
+    else if (line.startsWith('NOTE:')) {
+      contact.notes = line.slice(5);
+    }
+    // Address (ADR format: ;;street;city;state;zip;country)
+    else if (line.startsWith('ADR')) {
+      const parts = line.split(':')[1]?.split(';') || [];
+      const addressParts = [parts[2], parts[3], parts[4], parts[5], parts[6]].filter(Boolean);
+      if (addressParts.length > 0) {
+        contact.address = addressParts.join(', ');
+      }
+    }
+    // LinkedIn URL
+    else if (line.toUpperCase().includes('LINKEDIN')) {
+      const value = line.split(':').slice(1).join(':');
+      if (value) {
+        contact.linkedin = value.trim();
+      }
+    }
+    // Generic URL that might be LinkedIn
+    else if (line.startsWith('URL') && line.toLowerCase().includes('linkedin')) {
+      const value = line.split(':').slice(1).join(':');
+      if (value) {
+        contact.linkedin = value.trim();
+      }
+    }
+  }
+  
+  return contact;
+}
+
 export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrgs: initialOrgs }: AddPersonModalProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +83,7 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
   const [locationQuery, setLocationQuery] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const vcfInputRef = useRef<HTMLInputElement>(null);
   
   const [personData, setPersonData] = useState({
     name: '',
@@ -38,6 +94,40 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
     lng: '',
     notes: ''
   });
+
+  // Handle VCF file import
+  const handleVcfImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      const contact = parseVcf(text);
+      
+      // Populate form fields with parsed data
+      setPersonData(prev => ({
+        ...prev,
+        name: contact.name || prev.name,
+        phone: contact.phone || prev.phone,
+        email: contact.email || prev.email,
+        linkedin: contact.linkedin || prev.linkedin,
+        notes: contact.notes || prev.notes,
+      }));
+
+      // Pre-fill location if address exists (user must confirm via autocomplete)
+      if (contact.address) {
+        setLocationQuery(contact.address);
+        setLocationAddress(contact.address);
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
 
   // Load organizations on open -> Removed internal fetch
   // We now receive orgs from props, but we keep local state to add new ones optimistically
@@ -230,7 +320,33 @@ export default function AddPersonModal({ isOpen, onClose, onSuccess, existingOrg
           <h2 className="text-white text-xl font-bold">
             {step === 1 ? 'Step 1: Organizations' : 'Step 2: Person Details'}
           </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white p-2 -mr-2">✕</button>
+          <div className="flex items-center gap-2">
+            {step === 2 && (
+              <>
+                <input
+                  ref={vcfInputRef}
+                  type="file"
+                  accept=".vcf"
+                  onChange={handleVcfImport}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => vcfInputRef.current?.click()}
+                  className="text-zinc-400 hover:text-white text-xs border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                  title="Import from .vcf file"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Import
+                </button>
+              </>
+            )}
+            <button onClick={onClose} className="text-zinc-500 hover:text-white p-2 -mr-2">✕</button>
+          </div>
         </div>
 
         {step === 1 ? (
