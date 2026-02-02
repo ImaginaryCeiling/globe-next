@@ -5,6 +5,7 @@ import type { Person } from '../types/schema';
 import Navigation from '../components/Navigation';
 import AddPersonModal from '../components/AddPersonModal';
 import EditPersonModal from '../components/EditPersonModal';
+import AddInteractionModal from '../components/AddInteractionModal';
 import PRMPeopleTable from '../components/PRMPeopleTable';
 import SearchBar from '../components/SearchBar';
 import FilterPanel from '../components/FilterPanel';
@@ -29,6 +30,7 @@ export default function prmPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebarOpen');
@@ -195,12 +197,20 @@ export default function prmPage() {
           <div className="border-b border-zinc-800 p-4 md:p-6 shrink-0">
             <div className="flex items-center justify-between gap-4 mb-4">
               <h1 className="text-white text-2xl md:text-3xl font-bold">PRM</h1>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shrink-0"
-              >
-                + Add
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsInteractionModalOpen(true)}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shrink-0 text-sm"
+                >
+                  Log Interaction
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shrink-0"
+                >
+                  + Add
+                </button>
+              </div>
             </div>
 
             {/* Search and Filters */}
@@ -256,6 +266,16 @@ export default function prmPage() {
           existingOrgs={organizations}
         />
       )}
+
+      <AddInteractionModal
+        isOpen={isInteractionModalOpen}
+        onClose={() => setIsInteractionModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['interactions'] });
+        }}
+        people={people}
+        events={events}
+      />
     </div>
   );
 }
