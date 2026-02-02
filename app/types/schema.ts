@@ -12,6 +12,9 @@ export interface Event {
   id: UUID;
   name: string;
   date: string;
+  end_date?: string;
+  description?: string;
+  type?: string;
   location_name: string;
   location_lat?: number;
   location_lng?: number;
@@ -51,6 +54,7 @@ export interface Interaction {
   location_name?: string;
   location_lat?: number;
   location_lng?: number;
+  sentiment?: string;
   created_at?: string;
 
   // Joined fields
