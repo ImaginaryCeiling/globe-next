@@ -13,6 +13,7 @@ import { usePeople } from '../hooks/usePeople';
 import { useEvents } from '../hooks/useEvents';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useInteractions } from '../hooks/useInteractions';
+import { usePreferences } from '../hooks/usePreferences';
 import { useQueryClient } from '@tanstack/react-query';
 import SplashScreen from '../components/SplashScreen';
 
@@ -27,7 +28,8 @@ export default function prmPage() {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { data: organizations = [], isLoading: orgsLoading } = useOrganizations();
   const { data: interactions = [], isLoading: interactionsLoading } = useInteractions();
-  
+  const { interactionTypes, sentiments } = usePreferences();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
@@ -275,6 +277,8 @@ export default function prmPage() {
         }}
         people={people}
         events={events}
+        interactionTypes={interactionTypes}
+        sentiments={sentiments}
       />
     </div>
   );

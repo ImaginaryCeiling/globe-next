@@ -13,6 +13,7 @@ import { usePeople } from '../hooks/usePeople';
 import { useEvents } from '../hooks/useEvents';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useInteractions } from '../hooks/useInteractions';
+import { usePreferences } from '../hooks/usePreferences';
 import { useQueryClient } from '@tanstack/react-query';
 import SplashScreen from '../components/SplashScreen';
 
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { data: organizations = [], isLoading: orgsLoading } = useOrganizations();
   const { data: interactions = [], isLoading: interactionsLoading } = useInteractions();
+  const { interactionTypes, eventTypes, sentiments } = usePreferences();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
@@ -98,6 +100,7 @@ export default function DashboardPage() {
           onEditPerson={(person) => setEditingPerson(person)}
           onDeletePerson={handleDeletePerson}
           onInteractionsChange={invalidate}
+          interactionTypes={interactionTypes}
         />
       </div>
 
@@ -123,6 +126,7 @@ export default function DashboardPage() {
         onClose={() => { setIsAddEventOpen(false); setEditingEvent(null); }}
         onSuccess={() => invalidate()}
         editingEvent={editingEvent}
+        eventTypes={eventTypes}
       />
 
       <AddInteractionModal
@@ -132,6 +136,8 @@ export default function DashboardPage() {
         people={people}
         events={events}
         eventContext={interactionModal.eventContext}
+        interactionTypes={interactionTypes}
+        sentiments={sentiments}
       />
     </div>
   );

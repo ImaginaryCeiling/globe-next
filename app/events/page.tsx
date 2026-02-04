@@ -9,6 +9,7 @@ import EventDetailModal from '../components/EventDetailModal';
 import { useEvents } from '../hooks/useEvents';
 import { useInteractions } from '../hooks/useInteractions';
 import { usePeople } from '../hooks/usePeople';
+import { usePreferences } from '../hooks/usePreferences';
 import { useQueryClient } from '@tanstack/react-query';
 import SplashScreen from '../components/SplashScreen';
 
@@ -17,6 +18,7 @@ export default function EventsPage() {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { data: interactions = [], isLoading: interactionsLoading } = useInteractions();
   const { data: people = [], isLoading: peopleLoading } = usePeople();
+  const { interactionTypes, eventTypes: preferredEventTypes, sentiments } = usePreferences();
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -212,6 +214,7 @@ export default function EventsPage() {
         onClose={() => { setIsAddEventOpen(false); setEditingEvent(null); }}
         onSuccess={() => invalidate()}
         editingEvent={editingEvent}
+        eventTypes={preferredEventTypes}
       />
 
       {/* Event Detail Modal */}
@@ -225,6 +228,7 @@ export default function EventsPage() {
         onDelete={() => invalidate()}
         onAddInteraction={(event) => setInteractionModal({ open: true, eventContext: event })}
         onInteractionsChange={invalidate}
+        interactionTypes={interactionTypes}
       />
 
       {/* Add Interaction Modal */}
@@ -235,6 +239,8 @@ export default function EventsPage() {
         people={people}
         events={events}
         eventContext={interactionModal.eventContext}
+        interactionTypes={interactionTypes}
+        sentiments={sentiments}
       />
     </div>
   );
