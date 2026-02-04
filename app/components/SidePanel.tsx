@@ -19,11 +19,12 @@ interface SidePanelProps {
   onEditPerson?: (person: Person) => void;
   onDeletePerson?: (id: string) => void;
   onInteractionsChange: () => void;
+  interactionTypes?: string[];
 }
 
 type Tab = 'people' | 'events' | 'orgs';
 
-export default function SidePanel({ people, events, organizations, interactions, onAddClick, onAddEventClick, onAddInteractionClick, onEditEvent, onDeleteEvent, onEditPerson, onDeletePerson, onInteractionsChange }: SidePanelProps) {
+export default function SidePanel({ people, events, organizations, interactions, onAddClick, onAddEventClick, onAddInteractionClick, onEditEvent, onDeleteEvent, onEditPerson, onDeletePerson, onInteractionsChange, interactionTypes }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [isExpanded, setIsExpanded] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -428,6 +429,7 @@ export default function SidePanel({ people, events, organizations, interactions,
         onDelete={(id) => { onDeleteEvent?.(id); }}
         onAddInteraction={(event) => { onAddInteractionClick(event); }}
         onInteractionsChange={onInteractionsChange}
+        interactionTypes={interactionTypes}
       />
     </>
   );
