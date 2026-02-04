@@ -14,11 +14,13 @@ interface EventDetailModalProps {
   onDelete: (id: string) => void;
   onAddInteraction: (event: Event) => void;
   onInteractionsChange: () => void;
+  interactionTypes?: string[];
 }
 
 export default function EventDetailModal({
   isOpen, onClose, event, interactions, people,
   onEdit, onDelete, onAddInteraction, onInteractionsChange,
+  interactionTypes,
 }: EventDetailModalProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showBatchLogger, setShowBatchLogger] = useState(false);
@@ -158,6 +160,7 @@ export default function EventDetailModal({
               <BatchInteractionLogger
                 event={event}
                 people={people}
+                interactionTypes={interactionTypes}
                 onSuccess={() => {
                   setShowBatchLogger(false);
                   onInteractionsChange();

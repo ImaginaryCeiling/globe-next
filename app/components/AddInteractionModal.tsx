@@ -11,13 +11,17 @@ interface AddInteractionModalProps {
   events: Event[];
   eventContext?: Event | null;
   editingInteraction?: Interaction | null;
+  interactionTypes?: string[];
+  sentiments?: string[];
 }
 
-const INTERACTION_TYPES = ['met', 'call', 'email', 'message', 'introduction', 'other'];
-const SENTIMENTS = ['positive', 'neutral', 'negative'];
+const DEFAULT_INTERACTION_TYPES = ['met', 'call', 'email', 'message', 'introduction', 'other'];
+const DEFAULT_SENTIMENTS = ['positive', 'neutral', 'negative'];
 
 export default function AddInteractionModal({
-  isOpen, onClose, onSuccess, people, events, eventContext, editingInteraction
+  isOpen, onClose, onSuccess, people, events, eventContext, editingInteraction,
+  interactionTypes = DEFAULT_INTERACTION_TYPES,
+  sentiments = DEFAULT_SENTIMENTS,
 }: AddInteractionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [personSearch, setPersonSearch] = useState('');
@@ -182,7 +186,7 @@ export default function AddInteractionModal({
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value })}
               >
-                {INTERACTION_TYPES.map(t => (
+                {interactionTypes.map(t => (
                   <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                 ))}
               </select>
@@ -195,7 +199,7 @@ export default function AddInteractionModal({
                 onChange={e => setFormData({ ...formData, sentiment: e.target.value })}
               >
                 <option value="">None</option>
-                {SENTIMENTS.map(s => (
+                {sentiments.map(s => (
                   <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                 ))}
               </select>

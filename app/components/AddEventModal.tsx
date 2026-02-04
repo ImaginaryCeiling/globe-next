@@ -8,11 +8,12 @@ interface AddEventModalProps {
   onClose: () => void;
   onSuccess: (event: Event) => void;
   editingEvent?: Event | null;
+  eventTypes?: string[];
 }
 
-const EVENT_TYPES = ['conference', 'meetup', 'dinner', 'workshop', 'other'];
+const DEFAULT_EVENT_TYPES = ['conference', 'meetup', 'dinner', 'workshop', 'other'];
 
-export default function AddEventModal({ isOpen, onClose, onSuccess, editingEvent }: AddEventModalProps) {
+export default function AddEventModal({ isOpen, onClose, onSuccess, editingEvent, eventTypes = DEFAULT_EVENT_TYPES }: AddEventModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
@@ -158,7 +159,7 @@ export default function AddEventModal({ isOpen, onClose, onSuccess, editingEvent
               onChange={e => setFormData({ ...formData, type: e.target.value })}
             >
               <option value="">Select type...</option>
-              {EVENT_TYPES.map(t => (
+              {eventTypes.map(t => (
                 <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
               ))}
             </select>

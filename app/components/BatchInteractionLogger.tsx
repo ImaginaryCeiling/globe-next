@@ -8,9 +8,10 @@ interface BatchInteractionLoggerProps {
   people: Person[];
   onSuccess: (interactions: Interaction[]) => void;
   onClose: () => void;
+  interactionTypes?: string[];
 }
 
-const INTERACTION_TYPES = ['met', 'call', 'email', 'message', 'introduction', 'other'];
+const DEFAULT_INTERACTION_TYPES = ['met', 'call', 'email', 'message', 'introduction', 'other'];
 
 interface Row {
   id: number;
@@ -23,7 +24,7 @@ interface Row {
 
 let rowIdCounter = 0;
 
-export default function BatchInteractionLogger({ event, people, onSuccess, onClose }: BatchInteractionLoggerProps) {
+export default function BatchInteractionLogger({ event, people, onSuccess, onClose, interactionTypes = DEFAULT_INTERACTION_TYPES }: BatchInteractionLoggerProps) {
   const [rows, setRows] = useState<Row[]>([
     { id: ++rowIdCounter, person_id: '', personSearch: '', type: 'met', notes: '', sentiment: '' },
   ]);
@@ -103,6 +104,7 @@ export default function BatchInteractionLogger({ event, people, onSuccess, onClo
           key={row.id}
           row={row}
           people={people}
+          interactionTypes={interactionTypes}
           isDropdownOpen={activeDropdown === row.id}
           onOpenDropdown={() => setActiveDropdown(row.id)}
           onCloseDropdown={() => setActiveDropdown(null)}
@@ -133,11 +135,12 @@ export default function BatchInteractionLogger({ event, people, onSuccess, onClo
 }
 
 function BatchRow({
-  row, people, isDropdownOpen, onOpenDropdown, onCloseDropdown,
+  row, people, interactionTypes, isDropdownOpen, onOpenDropdown, onCloseDropdown,
   onUpdate, onSelectPerson, onRemove, canRemove
 }: {
   row: Row;
   people: Person[];
+  interactionTypes: string[];
   isDropdownOpen: boolean;
   onOpenDropdown: () => void;
   onCloseDropdown: () => void;
@@ -191,7 +194,7 @@ function BatchRow({
           value={row.type}
           onChange={e => onUpdate(row.id, 'type', e.target.value)}
         >
-          {INTERACTION_TYPES.map(t => (
+          {interactionTypes.map(t => (
             <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
           ))}
         </select>
