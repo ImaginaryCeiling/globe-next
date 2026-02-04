@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useQueryClient } from '@tanstack/react-query';
+import SettingsModal from './SettingsModal';
 
 interface NavigationProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface NavigationProps {
 export default function Navigation({ isOpen, onToggle }: NavigationProps) {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
 
@@ -34,6 +36,7 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
     prefetch('events', '/api/events');
     prefetch('organizations', '/api/organizations');
     prefetch('interactions', '/api/interactions');
+    prefetch('preferences', '/api/preferences');
   }, [queryClient]);
 
   const navItems = [
@@ -158,6 +161,16 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
                 <p className="text-zinc-500 text-xs truncate">{user?.email ?? 'user@example.com'}</p>
               </div>
               <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="text-zinc-500 hover:text-white transition-colors p-1"
+                title="Settings"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+              <button
                 onClick={signOut}
                 className="text-zinc-500 hover:text-white transition-colors p-1"
                 title="Sign out"
@@ -171,9 +184,9 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
             </div>
           ) : (
             <button
-              onClick={signOut}
+              onClick={() => setIsSettingsOpen(true)}
               className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 hover:border-zinc-600 transition-colors overflow-hidden"
-              title="Sign out"
+              title="Settings"
             >
               {user?.user_metadata?.avatar_url ? (
                 <img
@@ -191,6 +204,8 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
           )}
         </div>
       </div>
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       {/* Mobile bottom tab bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-zinc-800 z-50 pointer-events-auto">
@@ -212,9 +227,9 @@ export default function Navigation({ isOpen, onToggle }: NavigationProps) {
               </Link>
             );
           })}
-          {/* Profile / Sign out tab */}
+          {/* Profile / Settings tab */}
           <button
-            onClick={signOut}
+            onClick={() => setIsSettingsOpen(true)}
             className="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-lg min-w-[64px] text-zinc-500"
           >
             <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-zinc-700">
